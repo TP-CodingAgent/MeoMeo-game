@@ -7,6 +7,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.0.1] - 2026-11-01
+
+### 🔧 Fixed & Enhanced - Gun Effects Flight Trail & Dual Angel Wings
+
+* **Fix 3 Gun Effects Activation (`sparkle_trail`, `heart_stream`, `plasma_bolt`):**
+  * **Continuous Flight Trail:** Passed `equippedGunEffect` into `BubblePool.spawn()` and `Bubble.spawn()`. During flight, the bubble actively emits particles along its trajectory:
+    * `sparkle_trail` (*Vệt Sao Lấp Lánh*): Emits continuous golden star particles falling in the bubble's wake, with glowing star halo aura.
+    * `heart_stream` (*Suối Nguồn Trái Tim*): Emits gentle floating pastel pink hearts swaying in the bubble's slipstream, with soft pink aura.
+    * `plasma_bolt` (*Xung Điện Plasma*): Emits cyan energy droplets, star sparks, and an animated electric arc wrapping around the bubble.
+  * **Impact/Pop Burst Effects:** When a bubble pops upon hitting cats, props, or ceiling, it bursts into 8–10 thematic effect particles (golden stars, pink hearts, or electric cyan plasma bolts).
+  * **Shop Live Preview Animation:** Added real-time animated nozzle effects for gun items in the Shop preview canvas, running on a smooth animation loop while the modal is open.
+
+* **Fix Cat "Đôi cánh thiên thần" (`angel_wings`) Accessory:**
+  * **Dual Symmetrical Wings:** Upgraded from a single left-side wing to a complete, symmetrical pair of wings (*Đôi cánh thiên thần*) rendered on both left and right shoulders behind the cat.
+  * **Multi-Layer Feathery Plumage:** Rendered with 3 distinct feather layers, soft celestial aura glow, light cyan pastel contours (`#c7ecee`), and inner quill rib stems.
+  * **Synchronized Soft Flutter:** Both wings gently flutter in harmony (`Math.sin(animTime * 7)`), looking adorable from all angles.
+
+* **Test Suite Expansion:**
+  * Added Suite 11: `11. Gun Effects Flight Trail & Cat Angel Wings Render Tests` (3 new tests).
+  * Total unit tests increased to **39/39 Passed (100%)**.
+
+---
+
 ## [1.0.0] - 2026-11-01
 
 ### 🐾 Project Information

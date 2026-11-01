@@ -20,6 +20,8 @@ import { CatSpawner, CAT_STATES } from '../src/systems/spawner.js';
 import { SceneManager, STAGE_CONFIGS } from '../src/scenes/scene-manager.js';
 import { Prop } from '../src/entities/prop.js';
 import { Cat } from '../src/entities/cat.js';
+import { Bubble, BubblePool } from '../src/entities/bubble.js';
+import { ParticlePool } from '../src/entities/particle.js';
 import { SHOP_CATALOG, SHOP_ITEM_TYPES, CAT_SLOTS, SHOP_MAP } from '../src/data/shop-catalog.js';
 import { ShopManager } from '../src/systems/shop-manager.js';
 
@@ -34,7 +36,8 @@ export async function runAllTests(reporter) {
     testCatStateMachineAndHitTinting,
     testSceneManagerAndCollectionProgress,
     testGameSettingsAndStageExpansion,
-    testShopSystemAndModularOutfits
+    testShopSystemAndModularOutfits,
+    testGunEffectsAndDualAngelWings
   ];
 
   for (const suite of suites) {
@@ -581,5 +584,90 @@ async function testShopSystemAndModularOutfits(t) {
     t.assertEqual(shop.equippedGunEffect, 'none_effect', 'Reset effect to none');
     t.assertEqual(shop.equippedCatAccessories[CAT_SLOTS.HEAD], null, 'Head slot empty');
     t.assertEqual(shop.equippedCatAccessories[CAT_SLOTS.BACK], null, 'Back slot empty');
+  });
+}
+
+function createMockCtx() {
+  const calls = [];
+  return new Proxy({}, {
+    get: (target, prop) => {
+      if (prop === '_calls') return calls;
+      return (...args) => {
+        calls.push({ method: prop, args });
+      };
+    },
+    set: (target, prop, value) => {
+      calls.push({ set: prop, value });
+      return true;
+    }
+  });
+}
+
+async function testGunEffectsAndDualAngelWings(t) {
+  t.suite('11. Gun Effects Flight Trail & Cat Angel Wings Render Tests');
+
+  t.test('Bubble spawns with equipped gun effect and emits flight trail particles over time', () => {
+    const bubblePool = new BubblePool(10);
+    const particlePool = new ParticlePool(50);
+    
+    // Spawn bubble with sparkle_trail
+    const b = bubblePool.spawn(100, 600, 0, -300, '#ff6b8b', 20, 'circle', 100, 200, 'sparkle_trail');
+    t.assertTrue(b !== null, 'Bubble spawned successfully');
+    t.assertEqual(b.effect, 'sparkle_trail', 'Bubble has sparkle_trail effect assigned');
+
+    const initialParticles = particlePool.pool.filter(p => p.alive).length;
+    t.assertEqual(initialParticles, 0, 'Initial particle count is 0');
+
+    // Update 5 frames (dt = 0.05s each) -> should emit trail particles continuously along flight
+    for (let i = 0; i < 5; i++) {
+      b.update(0.05, { width: 1280, height: 720 }, particlePool);
+    }
+
+    const trailParticles = particlePool.pool.filter(p => p.alive);
+    t.assertTrue(trailParticles.length > 0, 'Trail particles emitted during flight');
+    t.assertTrue(trailParticles.some(p => p.type === 'star'), 'Emitted star particles for sparkle_trail');
+  });
+
+  t.test('Bubble.pop triggers distinct impact particle bursts for gun effects', () => {
+    const particlePool = new ParticlePool(100);
+
+    // 1. sparkle_trail
+    const b1 = new Bubble();
+    b1.spawn(200, 200, 0, -100, '#ff6b8b', 20, 'circle', 200, 100, 'sparkle_trail');
+    b1.pop(particlePool);
+    const starCount = particlePool.pool.filter(p => p.alive && p.type === 'star').length;
+    t.assertTrue(starCount >= 8, 'Pop bursts multiple star particles for sparkle_trail');
+
+    particlePool.clear();
+
+    // 2. heart_stream
+    const b2 = new Bubble();
+    b2.spawn(200, 200, 0, -100, '#ff6b8b', 20, 'circle', 200, 100, 'heart_stream');
+    b2.pop(particlePool);
+    const heartCount = particlePool.pool.filter(p => p.alive && p.type === 'heart').length;
+    t.assertTrue(heartCount >= 8, 'Pop bursts multiple heart particles for heart_stream');
+
+    particlePool.clear();
+
+    // 3. plasma_bolt
+    const b3 = new Bubble();
+    b3.spawn(200, 200, 0, -100, '#ff6b8b', 20, 'circle', 200, 100, 'plasma_bolt');
+    b3.pop(particlePool);
+    const dropletCount = particlePool.pool.filter(p => p.alive && p.type === 'droplet').length;
+    t.assertTrue(dropletCount >= 10, 'Pop bursts electric droplets for plasma_bolt');
+  });
+
+  t.test('Cat angel_wings accessory renders symmetrically with dual wings on both sides', () => {
+    const cat = new Cat(CAT_CATALOG[0], 200, 200);
+    const mockCtx = createMockCtx();
+
+    // Render with angel_wings
+    cat.render(mockCtx, { back: 'angel_wings' });
+
+    // Verify dual wing scaling: scale(-1, 1) must be called for the right wing mirror
+    const scaleCalls = mockCtx._calls.filter(c => c.method === 'scale');
+    const hasLeftWing = scaleCalls.some(c => c.args && c.args[0] === -1 && c.args[1] === 1);
+    const hasRightWing = scaleCalls.some(c => c.args && c.args[0] === 1 && c.args[1] === 1);
+    t.assertTrue(hasLeftWing && hasRightWing, 'Dual wings rendered symmetrically with left and right mirrored transforms');
   });
 }

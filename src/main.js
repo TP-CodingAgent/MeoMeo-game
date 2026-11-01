@@ -245,6 +245,7 @@ export class Game {
 
     const bubbleData = this.cannon.fire();
     if (bubbleData) {
+      const effect = this.shopManager.equippedGunEffect || 'none_effect';
       const b = this.bubblePool.spawn(
         bubbleData.x,
         bubbleData.y,
@@ -254,20 +255,22 @@ export class Game {
         bubbleData.radius,
         bubbleData.shape,
         bubbleData.targetX,
-        bubbleData.targetY
+        bubbleData.targetY,
+        effect
       );
       if (b) {
         this.audioManager.playShoot();
         this.particlePool.burst(bubbleData.x, bubbleData.y, bubbleData.color, 4, 'droplet');
 
-        // Apply Gun Effect particles
-        const effect = this.shopManager.equippedGunEffect;
+        // Apply Gun Effect muzzle particles
         if (effect === 'sparkle_trail') {
-          this.particlePool.burst(bubbleData.x, bubbleData.y - 10, '#ffd32a', 6, 'star');
+          this.particlePool.burst(bubbleData.x, bubbleData.y - 10, '#ffd32a', 8, 'star');
         } else if (effect === 'heart_stream') {
-          this.particlePool.spawnHeart(bubbleData.x, bubbleData.y - 12);
+          this.particlePool.spawnHeart(bubbleData.x - 8, bubbleData.y - 12);
+          this.particlePool.spawnHeart(bubbleData.x + 8, bubbleData.y - 12);
         } else if (effect === 'plasma_bolt') {
-          this.particlePool.burst(bubbleData.x, bubbleData.y - 10, '#00d2d3', 8, 'droplet');
+          this.particlePool.burst(bubbleData.x, bubbleData.y - 10, '#00d2d3', 10, 'droplet');
+          this.particlePool.burst(bubbleData.x, bubbleData.y - 10, '#54a0ff', 6, 'star');
         }
       }
     }

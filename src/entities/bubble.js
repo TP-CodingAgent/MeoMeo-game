@@ -36,10 +36,14 @@ export class Bubble {
     // Ceiling rebound bounce physics
     this.hasBouncedCeiling = false;
     this.ceilingDropTargetY = 0;
+
+    // Equipped Gun Trail & Impact Effect
+    this.effect = 'none_effect';
+    this.trailTimer = 0;
   }
 
-  // T-P: Spawn Bubble
-  spawn(x, y, vx, vy, colorHex, radius = 20, shape = 'circle', targetX = 0, targetY = 0) {
+  // T-P: Spawn Bubble with Gun Effect
+  spawn(x, y, vx, vy, colorHex, radius = 20, shape = 'circle', targetX = 0, targetY = 0, effect = 'none_effect') {
     this.x = x;
     this.y = y;
     this.startX = x;
@@ -62,6 +66,9 @@ export class Bubble {
 
     this.hasBouncedCeiling = false;
     this.ceilingDropTargetY = 0;
+
+    this.effect = effect || 'none_effect';
+    this.trailTimer = 0;
   }
 
   update(dt, bounds = { width: 1280, height: 720 }, particlePool = null) {
@@ -119,6 +126,46 @@ export class Bubble {
       this.vx = -this.vx * 0.7;
     }
 
+    // Emit equipped Gun Effect particles along flight path
+    if (this.effect && this.effect !== 'none_effect' && particlePool) {
+      this.trailTimer += dt;
+      if (this.trailTimer >= 0.035) {
+        this.trailTimer = 0;
+        if (this.effect === 'sparkle_trail') {
+          particlePool.spawn(
+            this.x + (Math.random() - 0.5) * (this.radius * 0.8),
+            this.y + (Math.random() - 0.5) * (this.radius * 0.8),
+            '#ffd32a',
+            'star',
+            { radius: 3.5 + Math.random() * 3, speed: 20, life: 0.45 }
+          );
+        } else if (this.effect === 'heart_stream') {
+          particlePool.spawn(
+            this.x + (Math.random() - 0.5) * (this.radius * 0.8),
+            this.y + (Math.random() - 0.5) * (this.radius * 0.8),
+            '#ff6b81',
+            'heart',
+            { radius: 5.0 + Math.random() * 3.5, speed: 25, life: 0.55 }
+          );
+        } else if (this.effect === 'plasma_bolt') {
+          particlePool.spawn(
+            this.x + (Math.random() - 0.5) * (this.radius * 0.7),
+            this.y + (Math.random() - 0.5) * (this.radius * 0.7),
+            '#00d2d3',
+            'droplet',
+            { radius: 3.2 + Math.random() * 2, speed: 45, life: 0.35 }
+          );
+          particlePool.spawn(
+            this.x + (Math.random() - 0.5) * (this.radius * 0.7),
+            this.y + (Math.random() - 0.5) * (this.radius * 0.7),
+            '#54a0ff',
+            'star',
+            { radius: 2.5 + Math.random() * 1.5, speed: 30, life: 0.25 }
+          );
+        }
+      }
+    }
+
     // Out of bottom bounds
     if (this.y > bounds.height + 60) {
       this.alive = false;
@@ -133,6 +180,16 @@ export class Bubble {
       const burstType = this.shape === 'heart' ? 'heart' : (this.shape === 'star' ? 'star' : 'droplet');
       particlePool.burst(this.x, this.y, this.colorHex, 12, burstType);
       particlePool.spawn(this.x, this.y, '#ffffff', 'star', { radius: 6 * this.scale, speed: 90 });
+
+      // Gun Effect impact burst
+      if (this.effect === 'sparkle_trail') {
+        particlePool.burst(this.x, this.y, '#ffd32a', 8, 'star');
+      } else if (this.effect === 'heart_stream') {
+        particlePool.burst(this.x, this.y, '#ff6b81', 8, 'heart');
+      } else if (this.effect === 'plasma_bolt') {
+        particlePool.burst(this.x, this.y, '#00d2d3', 10, 'droplet');
+        particlePool.burst(this.x, this.y, '#54a0ff', 6, 'star');
+      }
     }
   }
 
@@ -185,6 +242,47 @@ export class Bubble {
       default:
         this.drawCircleShape(ctx, r);
         break;
+    }
+
+    // Render special Gun Effect aura / electricity around bubble
+    if (this.effect === 'plasma_bolt') {
+      ctx.save();
+      ctx.strokeStyle = 'rgba(0, 210, 211, 0.65)';
+      ctx.lineWidth = 2.5;
+      ctx.shadowColor = '#00d2d3';
+      ctx.shadowBlur = 8;
+      ctx.beginPath();
+      ctx.arc(0, 0, r * 1.15, 0, Math.PI * 2);
+      ctx.stroke();
+
+      // Mini electric arc jittering around edge
+      const arcAngle = (this.wobblePhase * 4) % (Math.PI * 2);
+      ctx.strokeStyle = '#ffffff';
+      ctx.lineWidth = 1.8;
+      ctx.beginPath();
+      ctx.arc(0, 0, r * 1.2, arcAngle, arcAngle + 0.9);
+      ctx.stroke();
+      ctx.restore();
+    } else if (this.effect === 'sparkle_trail') {
+      ctx.save();
+      ctx.strokeStyle = 'rgba(255, 211, 42, 0.5)';
+      ctx.lineWidth = 2.5;
+      ctx.shadowColor = '#ffd32a';
+      ctx.shadowBlur = 6;
+      ctx.beginPath();
+      ctx.arc(0, 0, r * 1.12, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.restore();
+    } else if (this.effect === 'heart_stream') {
+      ctx.save();
+      ctx.strokeStyle = 'rgba(255, 107, 129, 0.45)';
+      ctx.lineWidth = 2.5;
+      ctx.shadowColor = '#ff6b81';
+      ctx.shadowBlur = 6;
+      ctx.beginPath();
+      ctx.arc(0, 0, r * 1.12, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.restore();
     }
 
     ctx.restore();
@@ -359,10 +457,10 @@ export class BubblePool {
     this.pool = Array.from({ length: size }, () => new Bubble());
   }
 
-  spawn(x, y, vx, vy, colorHex, radius = 20, shape = 'circle', targetX = 0, targetY = 0) {
+  spawn(x, y, vx, vy, colorHex, radius = 20, shape = 'circle', targetX = 0, targetY = 0, effect = 'none_effect') {
     const b = this.pool.find(item => !item.alive);
     if (b) {
-      b.spawn(x, y, vx, vy, colorHex, radius, shape, targetX, targetY);
+      b.spawn(x, y, vx, vy, colorHex, radius, shape, targetX, targetY, effect);
       return b;
     }
     return null;

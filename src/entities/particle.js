@@ -102,12 +102,12 @@ export class Particle {
       ctx.fill();
     } else if (this.type === 'heart') {
       ctx.scale(this.scale, this.scale);
-      ctx.fillStyle = '#ff4d6d';
+      ctx.fillStyle = this.color || '#ff4d6d';
       this.drawHeart(ctx, this.radius);
     } else if (this.type === 'star') {
       ctx.rotate(this.rotation);
       ctx.scale(this.scale, this.scale);
-      ctx.fillStyle = '#ffd166';
+      ctx.fillStyle = this.color || '#ffd166';
       this.drawStar(ctx, 5, this.radius, this.radius * 0.5);
     } else if (this.type === 'splat') {
       ctx.fillStyle = this.color;

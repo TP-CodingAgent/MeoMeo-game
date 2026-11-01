@@ -2646,15 +2646,35 @@
       }
     };
 
+    let shopPreviewAnimId = null;
+
+    function startShopPreviewLoop() {
+      if (shopPreviewAnimId) cancelAnimationFrame(shopPreviewAnimId);
+      function loop() {
+        if (!shopModal.classList.contains('active')) return;
+        renderShopLivePreview();
+        shopPreviewAnimId = requestAnimationFrame(loop);
+      }
+      shopPreviewAnimId = requestAnimationFrame(loop);
+    }
+
+    function stopShopPreviewLoop() {
+      if (shopPreviewAnimId) {
+        cancelAnimationFrame(shopPreviewAnimId);
+        shopPreviewAnimId = null;
+      }
+    }
+
     function openShop() {
       updatePawPointsUI();
       renderShopGrid();
-      renderShopLivePreview();
       shopModal.classList.add('active');
+      startShopPreviewLoop();
     }
 
     function closeShop() {
       shopModal.classList.remove('active');
+      stopShopPreviewLoop();
     }
 
     if (btnShop) btnShop.addEventListener('click', openShop);
@@ -2693,6 +2713,8 @@
       });
     });
 
+    let lastPreviewMetaHtml = '';
+
     function renderShopLivePreview() {
       const cvs = shopPreviewCanvas;
       if (!cvs) return;
@@ -2710,10 +2732,75 @@
         previewBlaster.renderBlaster(ctx);
         ctx.restore();
 
+        // Draw animated Gun Effect particles at muzzle in Shop Preview
+        const currentEffect = game.shopManager.equippedGunEffect;
+        const t = performance.now() / 1000;
+
+        if (currentEffect === 'sparkle_trail') {
+          ctx.save();
+          for (let i = 0; i < 4; i++) {
+            const phase = (t * 2.2 + i * 0.35) % 1.0;
+            const py = 110 - phase * 65;
+            const px = 110 + Math.sin(t * 5 + i * 1.5) * 16;
+            const alpha = Math.max(0, 1 - phase);
+            ctx.fillStyle = `rgba(255, 211, 42, ${alpha})`;
+            ctx.beginPath();
+            const starR = 4.5 * (1 - phase * 0.3);
+            for (let s = 0; s < 10; s++) {
+              const r = s % 2 === 0 ? starR : starR * 0.5;
+              const a = (s * Math.PI) / 5 - Math.PI / 2;
+              const sx = px + Math.cos(a) * r;
+              const sy = py + Math.sin(a) * r;
+              if (s === 0) ctx.moveTo(sx, sy);
+              else ctx.lineTo(sx, sy);
+            }
+            ctx.closePath();
+            ctx.fill();
+          }
+          ctx.restore();
+        } else if (currentEffect === 'heart_stream') {
+          ctx.save();
+          for (let i = 0; i < 3; i++) {
+            const phase = (t * 1.8 + i * 0.45) % 1.0;
+            const py = 112 - phase * 60;
+            const px = 110 + Math.sin(t * 4 + i * 2) * 16;
+            const alpha = Math.max(0, 1 - phase);
+            ctx.fillStyle = `rgba(255, 107, 129, ${alpha})`;
+            ctx.beginPath();
+            const hs = 6.5 * (1 - phase * 0.25);
+            ctx.moveTo(px, py + hs * 0.3);
+            ctx.bezierCurveTo(px - hs / 2, py - hs / 2, px - hs, py + hs * 0.3, px, py + hs);
+            ctx.bezierCurveTo(px + hs, py + hs * 0.3, px + hs / 2, py - hs / 2, px, py + hs * 0.3);
+            ctx.fill();
+          }
+          ctx.restore();
+        } else if (currentEffect === 'plasma_bolt') {
+          ctx.save();
+          ctx.strokeStyle = '#00d2d3';
+          ctx.lineWidth = 2.5;
+          ctx.shadowColor = '#00d2d3';
+          ctx.shadowBlur = 8;
+          for (let i = 0; i < 3; i++) {
+            const angle = t * 6 + (i * Math.PI * 2) / 3;
+            const r = 16 + Math.sin(t * 8 + i) * 6;
+            const ex = 110 + Math.cos(angle) * r;
+            const ey = 105 + Math.sin(angle) * (r * 0.5);
+            ctx.beginPath();
+            ctx.moveTo(110, 110);
+            ctx.lineTo(ex, ey);
+            ctx.stroke();
+          }
+          ctx.fillStyle = '#ffffff';
+          ctx.beginPath();
+          ctx.arc(110, 110, 3 + Math.sin(t * 12) * 1.5, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.restore();
+        }
+
         const currentSkinItem = SHOP_MAP.get(game.shopManager.equippedGunSkin);
         const currentEffectItem = SHOP_MAP.get(game.shopManager.equippedGunEffect);
 
-        shopPreviewMeta.innerHTML = `
+        const newMetaHtml = `
           <div class="shop-preview-meta-row">
             <span class="shop-preview-meta-label">🔫 Skin Súng:</span>
             <span class="shop-preview-meta-val" title="${currentSkinItem ? currentSkinItem.name : ''}">${currentSkinItem ? currentSkinItem.name : 'Mặc định'}</span>
@@ -2723,6 +2810,10 @@
             <span class="shop-preview-meta-val" title="${currentEffectItem ? currentEffectItem.name : ''}">${currentEffectItem ? currentEffectItem.name : 'Bọt thường'}</span>
           </div>
         `;
+        if (newMetaHtml !== lastPreviewMetaHtml) {
+          shopPreviewMeta.innerHTML = newMetaHtml;
+          lastPreviewMetaHtml = newMetaHtml;
+        }
       } else {
         // Draw cat model preview
         ctx.save();
@@ -2741,7 +2832,7 @@
         const backItem = acc[CAT_SLOTS.BACK] ? SHOP_MAP.get(acc[CAT_SLOTS.BACK]) : null;
         const auraItem = acc[CAT_SLOTS.AURA] ? SHOP_MAP.get(acc[CAT_SLOTS.AURA]) : null;
 
-        shopPreviewMeta.innerHTML = `
+        const newMetaHtml = `
           <div class="shop-preview-meta-row">
             <span class="shop-preview-meta-label">🎩 Đầu:</span>
             <span class="shop-preview-meta-val">${headItem ? headItem.name : 'Trống'}</span>
@@ -2759,6 +2850,10 @@
             <span class="shop-preview-meta-val">${auraItem ? auraItem.name : 'Trống'}</span>
           </div>
         `;
+        if (newMetaHtml !== lastPreviewMetaHtml) {
+          shopPreviewMeta.innerHTML = newMetaHtml;
+          lastPreviewMetaHtml = newMetaHtml;
+        }
       }
     }
 

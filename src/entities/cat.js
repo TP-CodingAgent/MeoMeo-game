@@ -551,25 +551,65 @@ export class Cat {
       ctx.quadraticCurveTo(-r * 0.3, -r * 0.05, -r * 0.35, r * 0.3);
       ctx.stroke();
     } else if (backId === 'angel_wings') {
-      // White feathery angel wings fluttering gently
-      const flap = Math.sin(t * 7) * 0.12;
-      ctx.save();
-      ctx.translate(-r * 0.5, -r * 0.15);
-      ctx.rotate(flap);
+      // White feathery angel wings fluttering gently on BOTH left and right sides
+      const flap = Math.sin(t * 7) * 0.14;
 
-      ctx.fillStyle = '#ffffff';
-      ctx.beginPath();
-      ctx.moveTo(0, 0);
-      ctx.bezierCurveTo(-r * 0.8, -r * 0.8, -r * 1.4, -r * 0.6, -r * 1.5, -r * 0.1);
-      ctx.bezierCurveTo(-r * 1.3, r * 0.2, -r * 0.9, r * 0.15, -r * 0.7, r * 0.3);
-      ctx.bezierCurveTo(-r * 0.5, r * 0.35, -r * 0.3, r * 0.2, 0, 0);
-      ctx.closePath();
-      ctx.fill();
-      ctx.strokeStyle = '#c7ecee';
-      ctx.lineWidth = 2;
-      ctx.stroke();
+      const drawSingleWing = (isRight) => {
+        ctx.save();
+        const sideSign = isRight ? 1 : -1;
+        ctx.translate(sideSign * r * 0.35, -r * 0.15);
+        ctx.scale(sideSign, 1);
+        ctx.rotate(-flap - 0.12);
 
-      ctx.restore();
+        // Soft celestial glow behind feathers
+        ctx.shadowColor = 'rgba(199, 236, 238, 0.7)';
+        ctx.shadowBlur = 10;
+
+        // Base large feathery wing (3 distinct curved plumage feathers)
+        ctx.fillStyle = '#ffffff';
+        ctx.beginPath();
+        ctx.moveTo(0, 0);
+        // Top flight feather tip
+        ctx.bezierCurveTo(-r * 0.6, -r * 0.95, -r * 1.3, -r * 0.9, -r * 1.55, -r * 0.35);
+        // Middle feather dip & tip
+        ctx.bezierCurveTo(-r * 1.45, -r * 0.05, -r * 1.35, 0.0, -r * 1.25, r * 0.15);
+        // Lower feather tip
+        ctx.bezierCurveTo(-r * 1.05, r * 0.25, -r * 0.8, r * 0.3, -r * 0.55, r * 0.32);
+        // Return to wing base
+        ctx.quadraticCurveTo(-r * 0.25, r * 0.2, 0, 0);
+        ctx.closePath();
+        ctx.fill();
+
+        ctx.shadowBlur = 0;
+        ctx.strokeStyle = '#c7ecee';
+        ctx.lineWidth = 2.2;
+        ctx.stroke();
+
+        // Inner soft plumage layer for dimensional depth
+        ctx.fillStyle = '#f1f2f6';
+        ctx.beginPath();
+        ctx.moveTo(0, 0);
+        ctx.bezierCurveTo(-r * 0.45, -r * 0.65, -r * 0.9, -r * 0.6, -r * 1.05, -r * 0.2);
+        ctx.bezierCurveTo(-r * 0.85, r * 0.1, -r * 0.5, r * 0.18, 0, 0);
+        ctx.closePath();
+        ctx.fill();
+
+        // Feather quill lines (stem rib)
+        ctx.strokeStyle = '#dfe4ea';
+        ctx.lineWidth = 1.6;
+        ctx.beginPath();
+        ctx.moveTo(0, 0);
+        ctx.quadraticCurveTo(-r * 0.65, -r * 0.45, -r * 1.35, -r * 0.3);
+        ctx.moveTo(-r * 0.45, -r * 0.15);
+        ctx.quadraticCurveTo(-r * 0.75, 0, -r * 1.05, r * 0.12);
+        ctx.stroke();
+
+        ctx.restore();
+      };
+
+      // Draw both wings symmetrically
+      drawSingleWing(false); // Left wing
+      drawSingleWing(true);  // Right wing
     }
 
     ctx.restore();
