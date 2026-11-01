@@ -13,6 +13,7 @@ import { AudioManager } from './audio/audio-manager.js';
 import { isCircleCollidingCircle, isCircleCollidingAABB } from './utils/math-physics.js';
 import { CAT_CATALOG, BUBBLE_SHAPES } from './data/cat-catalog.js';
 import { safeStorage } from './utils/safe-storage.js';
+import { shopManager } from './systems/shop-manager.js';
 
 export const GAME_STATES = {
   MENU: 'MENU',
@@ -43,6 +44,11 @@ export class Game {
     this.particlePool = new ParticlePool(250);
     this.sceneManager = new SceneManager();
     this.audioManager = new AudioManager();
+    this.shopManager = shopManager;
+
+    // Sync equipped cosmetics
+    this.cannon.setSkin(this.shopManager.equippedGunSkin);
+    this.cannon.setEffect(this.shopManager.equippedGunEffect);
 
     // Game Session State
     this.state = GAME_STATES.MENU;
@@ -136,6 +142,12 @@ export class Game {
     this.spawner.setMinCats(4);
     this.sceneManager.unlockedCats = new Set();
     this.sceneManager.unlockedBubbleShapes = new Set(['heart']);
+    this.shopManager.resetAllData();
+    this.cannon.setSkin(this.shopManager.equippedGunSkin);
+    this.cannon.setEffect(this.shopManager.equippedGunEffect);
+    if (window.onPointsUpdated) {
+      window.onPointsUpdated(0);
+    }
     this.setStage(0);
   }
 
@@ -247,6 +259,16 @@ export class Game {
       if (b) {
         this.audioManager.playShoot();
         this.particlePool.burst(bubbleData.x, bubbleData.y, bubbleData.color, 4, 'droplet');
+
+        // Apply Gun Effect particles
+        const effect = this.shopManager.equippedGunEffect;
+        if (effect === 'sparkle_trail') {
+          this.particlePool.burst(bubbleData.x, bubbleData.y - 10, '#ffd32a', 6, 'star');
+        } else if (effect === 'heart_stream') {
+          this.particlePool.spawnHeart(bubbleData.x, bubbleData.y - 12);
+        } else if (effect === 'plasma_bolt') {
+          this.particlePool.burst(bubbleData.x, bubbleData.y - 10, '#00d2d3', 8, 'droplet');
+        }
       }
     }
   }
@@ -379,13 +401,19 @@ export class Game {
 
           const catCatalog = cat.onHit(bubble.colorHex, this.particlePool, this.audioManager);
 
-          // Scoring
+          // Scoring & Currency
           this.comboCount++;
           this.comboTimer = 3.2;
           const comboMultiplier = Math.min(this.comboCount, 5);
           const gainedScore = 100 * catCatalog.rarity * comboMultiplier;
           this.score += gainedScore;
           this.catsPettedCount++;
+
+          // Award Paw Points to Shop currency
+          const totalPoints = this.shopManager.addPoints(gainedScore);
+          if (window.onPointsUpdated) {
+            window.onPointsUpdated(totalPoints);
+          }
 
           // Unlock cat in Encyclopedia
           const isNewlyUnlocked = this.sceneManager.unlockCat(catCatalog.id);
@@ -486,9 +514,10 @@ export class Game {
       prop.render(this.ctx);
     }
 
-    // 3. Cats
+    // 3. Cats (Equipped with player's modular accessories)
+    const equippedAcc = this.shopManager.equippedCatAccessories;
     for (const cat of this.spawner.activeCats) {
-      cat.render(this.ctx);
+      cat.render(this.ctx, equippedAcc);
     }
 
     // 4. Bubbles
@@ -527,5 +556,35 @@ export class Game {
     ctx.textBaseline = 'middle';
     ctx.fillText(this.toastMessage, 0, 0);
     ctx.restore();
+  }
+
+  buyCosmetic(itemId) {
+    const res = this.shopManager.buyItem(itemId);
+    if (res.success) {
+      this.cannon.setSkin(this.shopManager.equippedGunSkin);
+      this.cannon.setEffect(this.shopManager.equippedGunEffect);
+      if (window.onPointsUpdated) {
+        window.onPointsUpdated(this.shopManager.pawPoints);
+      }
+    }
+    return res;
+  }
+
+  equipCosmetic(itemId) {
+    const success = this.shopManager.equipItem(itemId);
+    if (success) {
+      this.cannon.setSkin(this.shopManager.equippedGunSkin);
+      this.cannon.setEffect(this.shopManager.equippedGunEffect);
+    }
+    return success;
+  }
+
+  unequipCosmetic(slotOrType, slotKey = null) {
+    const success = this.shopManager.unequipItem(slotOrType, slotKey);
+    if (success) {
+      this.cannon.setSkin(this.shopManager.equippedGunSkin);
+      this.cannon.setEffect(this.shopManager.equippedGunEffect);
+    }
+    return success;
   }
 }

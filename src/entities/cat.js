@@ -323,7 +323,7 @@ export class Cat {
     return true;
   }
 
-  render(ctx) {
+  render(ctx, equippedAccessories = null) {
     ctx.save();
     ctx.translate(this.x, this.y);
     ctx.scale(this.direction * this.squashStretchX, this.squashStretchY);
@@ -333,7 +333,359 @@ export class Cat {
       return;
     }
 
+    const accessories = equippedAccessories || {};
+    const r = this.radius;
+
+    // 1. Aura accessory (Rendered around/behind)
+    if (accessories.aura) {
+      this.drawAuraAccessory(ctx, accessories.aura, r);
+    }
+
+    // 2. Back accessory (Super cape, backpack, angel wings - rendered behind cat body)
+    if (accessories.back) {
+      this.drawBackAccessory(ctx, accessories.back, r);
+    }
+
+    // 3. Cat body, head, ears, eyes, paws
     this.drawCat(ctx);
+
+    // 4. Head accessory (Top hat, crown, halo, bow - rendered over ears/head)
+    if (accessories.head) {
+      this.drawHeadAccessory(ctx, accessories.head, r);
+    }
+
+    // 5. Face accessory (Sunglasses, round glasses, mustache, bandage - rendered over face)
+    if (accessories.face) {
+      this.drawFaceAccessory(ctx, accessories.face, r);
+    }
+
+    ctx.restore();
+  }
+
+  drawAuraAccessory(ctx, auraId, r) {
+    const t = this.animTime;
+    ctx.save();
+
+    if (auraId === 'sparkle_aura') {
+      const starCount = 5;
+      for (let i = 0; i < starCount; i++) {
+        const angle = t * 2.5 + (i * Math.PI * 2) / starCount;
+        const orbitX = Math.cos(angle) * (r * 1.35);
+        const orbitY = Math.sin(angle) * (r * 1.05);
+        const starSize = 5 + Math.sin(t * 5 + i) * 2;
+
+        ctx.fillStyle = '#ffd32a';
+        ctx.beginPath();
+        for (let p = 0; p < 4; p++) {
+          const a = (p * Math.PI) / 2;
+          ctx.lineTo(orbitX + Math.cos(a) * starSize, orbitY + Math.sin(a) * starSize);
+          ctx.lineTo(orbitX + Math.cos(a + Math.PI / 4) * (starSize * 0.35), orbitY + Math.sin(a + Math.PI / 4) * (starSize * 0.35));
+        }
+        ctx.closePath();
+        ctx.fill();
+      }
+    } else if (auraId === 'heart_aura') {
+      const heartCount = 4;
+      for (let i = 0; i < heartCount; i++) {
+        const angle = -t * 2.0 + (i * Math.PI * 2) / heartCount;
+        const orbitX = Math.cos(angle) * (r * 1.3);
+        const orbitY = Math.sin(angle) * (r * 1.0) + Math.sin(t * 3 + i) * 6;
+        const hSize = 5 + Math.sin(t * 4 + i) * 1.5;
+
+        ctx.fillStyle = '#ff6b8b';
+        ctx.beginPath();
+        ctx.moveTo(orbitX, orbitY);
+        ctx.bezierCurveTo(orbitX - hSize, orbitY - hSize, orbitX - hSize * 1.6, orbitY + hSize * 0.5, orbitX, orbitY + hSize * 1.5);
+        ctx.bezierCurveTo(orbitX + hSize * 1.6, orbitY + hSize * 0.5, orbitX + hSize, orbitY - hSize, orbitX, orbitY);
+        ctx.fill();
+      }
+    } else if (auraId === 'electric_aura') {
+      ctx.strokeStyle = '#00d2d3';
+      ctx.lineWidth = 2.5;
+      ctx.lineCap = 'round';
+      const sparkCount = 4;
+      for (let i = 0; i < sparkCount; i++) {
+        const baseAngle = (i * Math.PI * 2) / sparkCount + (t * 8 % Math.PI);
+        const dist = r * 1.25;
+        const sx = Math.cos(baseAngle) * dist;
+        const sy = Math.sin(baseAngle) * dist;
+        const jitterX = Math.sin(t * 30 + i * 5) * 8;
+        const jitterY = Math.cos(t * 28 + i * 3) * 8;
+
+        ctx.beginPath();
+        ctx.moveTo(sx, sy);
+        ctx.lineTo(sx + jitterX, sy + jitterY);
+        ctx.lineTo(sx + jitterX * 1.8, sy + jitterY * 1.8);
+        ctx.stroke();
+      }
+    }
+
+    ctx.restore();
+  }
+
+  drawBackAccessory(ctx, backId, r) {
+    const t = this.animTime;
+    ctx.save();
+
+    if (backId === 'superhero_cape') {
+      // Cape flaps naturally behind cat's back (x < 0)
+      const flap = Math.sin(t * 10) * 12;
+      ctx.fillStyle = '#ff4757';
+      ctx.beginPath();
+      ctx.moveTo(-r * 0.35, -r * 0.2);
+      ctx.lineTo(-r * 0.35, r * 0.25);
+      ctx.quadraticCurveTo(-r * 1.5 + flap * 0.5, r * 0.9 + flap, -r * 1.8 + flap, r * 0.45);
+      ctx.quadraticCurveTo(-r * 1.4 + flap * 0.3, -r * 0.2, -r * 0.35, -r * 0.2);
+      ctx.closePath();
+      ctx.fill();
+      ctx.strokeStyle = '#ffd32a';
+      ctx.lineWidth = 2;
+      ctx.stroke();
+
+      // Cape collar pin
+      ctx.fillStyle = '#ffd32a';
+      ctx.beginPath();
+      ctx.arc(-r * 0.35, -r * 0.1, 4.5, 0, Math.PI * 2);
+      ctx.fill();
+    } else if (backId === 'mini_backpack') {
+      // Cute backpack strapped to back
+      ctx.fillStyle = '#ffa502';
+      ctx.beginPath();
+      ctx.roundRect(-r * 1.05, -r * 0.25, r * 0.55, r * 0.65, 6);
+      ctx.fill();
+      ctx.strokeStyle = '#d35400';
+      ctx.lineWidth = 2;
+      ctx.stroke();
+
+      // Flap & pocket
+      ctx.fillStyle = '#e67e22';
+      ctx.beginPath();
+      ctx.roundRect(-r * 1.05, -r * 0.25, r * 0.55, r * 0.25, [6, 6, 2, 2]);
+      ctx.fill();
+
+      // Buckle
+      ctx.fillStyle = '#dfe6e9';
+      ctx.fillRect(-r * 0.85, -r * 0.08, 6, 5);
+
+      // Shoulder straps
+      ctx.strokeStyle = '#d35400';
+      ctx.lineWidth = 2.5;
+      ctx.beginPath();
+      ctx.moveTo(-r * 0.55, -r * 0.15);
+      ctx.quadraticCurveTo(-r * 0.3, -r * 0.05, -r * 0.35, r * 0.3);
+      ctx.stroke();
+    } else if (backId === 'angel_wings') {
+      // White feathery angel wings fluttering gently
+      const flap = Math.sin(t * 7) * 0.12;
+      ctx.save();
+      ctx.translate(-r * 0.5, -r * 0.15);
+      ctx.rotate(flap);
+
+      ctx.fillStyle = '#ffffff';
+      ctx.beginPath();
+      ctx.moveTo(0, 0);
+      ctx.bezierCurveTo(-r * 0.8, -r * 0.8, -r * 1.4, -r * 0.6, -r * 1.5, -r * 0.1);
+      ctx.bezierCurveTo(-r * 1.3, r * 0.2, -r * 0.9, r * 0.15, -r * 0.7, r * 0.3);
+      ctx.bezierCurveTo(-r * 0.5, r * 0.35, -r * 0.3, r * 0.2, 0, 0);
+      ctx.closePath();
+      ctx.fill();
+      ctx.strokeStyle = '#c7ecee';
+      ctx.lineWidth = 2;
+      ctx.stroke();
+
+      ctx.restore();
+    }
+
+    ctx.restore();
+  }
+
+  drawHeadAccessory(ctx, headId, r) {
+    ctx.save();
+
+    if (headId === 'top_hat') {
+      // Magician high-top hat
+      ctx.translate(0, -r * 0.8);
+      // Brim
+      ctx.fillStyle = '#2f3542';
+      ctx.beginPath();
+      ctx.ellipse(0, 0, r * 0.65, r * 0.18, 0, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Crown
+      ctx.beginPath();
+      ctx.roundRect(-r * 0.38, -r * 0.7, r * 0.76, r * 0.7, [5, 5, 0, 0]);
+      ctx.fill();
+
+      // Red ribbon
+      ctx.fillStyle = '#ff4757';
+      ctx.fillRect(-r * 0.38, -r * 0.22, r * 0.76, r * 0.18);
+
+      // Gold buckle
+      ctx.fillStyle = '#ffd32a';
+      ctx.fillRect(-r * 0.1, -r * 0.24, r * 0.2, r * 0.22);
+    } else if (headId === 'crown') {
+      // Golden Crown
+      ctx.translate(0, -r * 0.85);
+      ctx.fillStyle = '#f1c40f';
+      ctx.beginPath();
+      ctx.moveTo(-r * 0.45, 0);
+      ctx.lineTo(-r * 0.45, -r * 0.45);
+      ctx.lineTo(-r * 0.22, -r * 0.2);
+      ctx.lineTo(0, -r * 0.55);
+      ctx.lineTo(r * 0.22, -r * 0.2);
+      ctx.lineTo(r * 0.45, -r * 0.45);
+      ctx.lineTo(r * 0.45, 0);
+      ctx.closePath();
+      ctx.fill();
+      ctx.strokeStyle = '#d4ac0d';
+      ctx.lineWidth = 2;
+      ctx.stroke();
+
+      // Gems on points
+      ctx.fillStyle = '#e74c3c';
+      ctx.beginPath();
+      ctx.arc(0, -r * 0.55, 3.5, 0, Math.PI * 2);
+      ctx.arc(-r * 0.45, -r * 0.45, 3, 0, Math.PI * 2);
+      ctx.arc(r * 0.45, -r * 0.45, 3, 0, Math.PI * 2);
+      ctx.fill();
+    } else if (headId === 'angel_halo') {
+      // Glowing golden halo floating above ears
+      const bob = Math.sin(this.animTime * 4) * 3;
+      ctx.translate(0, -r * 1.35 + bob);
+
+      ctx.strokeStyle = '#ffd32a';
+      ctx.lineWidth = 4;
+      ctx.beginPath();
+      ctx.ellipse(0, 0, r * 0.55, r * 0.16, 0, 0, Math.PI * 2);
+      ctx.stroke();
+
+      ctx.strokeStyle = '#ffffff';
+      ctx.lineWidth = 1.8;
+      ctx.beginPath();
+      ctx.ellipse(0, 0, r * 0.55, r * 0.16, 0, 0, Math.PI * 2);
+      ctx.stroke();
+    } else if (headId === 'cute_bow') {
+      // Pink ribbon bow over right ear
+      ctx.translate(r * 0.45, -r * 0.7);
+      ctx.fillStyle = '#ff9ff3';
+
+      // Left wing
+      ctx.beginPath();
+      ctx.moveTo(0, 0);
+      ctx.lineTo(-12, -8);
+      ctx.lineTo(-12, 8);
+      ctx.closePath();
+      ctx.fill();
+
+      // Right wing
+      ctx.beginPath();
+      ctx.moveTo(0, 0);
+      ctx.lineTo(12, -8);
+      ctx.lineTo(12, 8);
+      ctx.closePath();
+      ctx.fill();
+
+      // Center knot
+      ctx.fillStyle = '#f368e0';
+      ctx.beginPath();
+      ctx.arc(0, 0, 4.5, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    ctx.restore();
+  }
+
+  drawFaceAccessory(ctx, faceId, r) {
+    ctx.save();
+
+    if (faceId === 'sunglasses') {
+      // Cool black sunglasses
+      ctx.translate(0, -r * 0.05);
+
+      ctx.fillStyle = '#222f3e';
+      // Left glass
+      ctx.beginPath();
+      ctx.roundRect(-r * 0.55, -r * 0.22, r * 0.42, r * 0.32, 6);
+      ctx.fill();
+      // Right glass
+      ctx.beginPath();
+      ctx.roundRect(r * 0.13, -r * 0.22, r * 0.42, r * 0.32, 6);
+      ctx.fill();
+
+      // Bridge
+      ctx.strokeStyle = '#222f3e';
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.moveTo(-r * 0.15, -r * 0.12);
+      ctx.lineTo(r * 0.15, -r * 0.12);
+      ctx.stroke();
+
+      // White shine gleam
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.75)';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(-r * 0.48, -r * 0.16);
+      ctx.lineTo(-r * 0.25, -r * 0.16);
+      ctx.moveTo(r * 0.2, -r * 0.16);
+      ctx.lineTo(r * 0.43, -r * 0.16);
+      ctx.stroke();
+    } else if (faceId === 'round_glasses') {
+      // Intellectual round spectacles
+      ctx.translate(0, -r * 0.05);
+
+      ctx.strokeStyle = '#b7791f';
+      ctx.lineWidth = 2.5;
+
+      // Left circle
+      ctx.beginPath();
+      ctx.arc(-r * 0.35, -r * 0.05, r * 0.22, 0, Math.PI * 2);
+      ctx.stroke();
+
+      // Right circle
+      ctx.beginPath();
+      ctx.arc(r * 0.35, -r * 0.05, r * 0.22, 0, Math.PI * 2);
+      ctx.stroke();
+
+      // Center bridge
+      ctx.beginPath();
+      ctx.moveTo(-r * 0.13, -r * 0.05);
+      ctx.quadraticCurveTo(0, -r * 0.12, r * 0.13, -r * 0.05);
+      ctx.stroke();
+
+      // Glass reflection
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.65)';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.arc(-r * 0.35, -r * 0.05, r * 0.16, -Math.PI * 0.7, -Math.PI * 0.3);
+      ctx.arc(r * 0.35, -r * 0.05, r * 0.16, -Math.PI * 0.7, -Math.PI * 0.3);
+      ctx.stroke();
+    } else if (faceId === 'mustache') {
+      // Curled gentleman mustache below nose
+      ctx.translate(0, r * 0.26);
+      ctx.fillStyle = '#2f3542';
+
+      ctx.beginPath();
+      ctx.moveTo(0, 0);
+      ctx.quadraticCurveTo(-r * 0.2, -r * 0.15, -r * 0.48, 0);
+      ctx.quadraticCurveTo(-r * 0.52, -r * 0.1, -r * 0.45, -r * 0.15);
+      ctx.quadraticCurveTo(-r * 0.2, 0, 0, -r * 0.04);
+      ctx.quadraticCurveTo(r * 0.2, 0, r * 0.45, -r * 0.15);
+      ctx.quadraticCurveTo(r * 0.52, -r * 0.1, r * 0.48, 0);
+      ctx.quadraticCurveTo(r * 0.2, -r * 0.15, 0, 0);
+      ctx.fill();
+    } else if (faceId === 'bandage') {
+      // Cheek bandage cross on right cheek
+      ctx.translate(r * 0.42, r * 0.2);
+      ctx.fillStyle = '#ffeaa7';
+
+      ctx.save();
+      ctx.rotate(0.3);
+      ctx.fillRect(-7, -2.5, 14, 5);
+      ctx.fillRect(-2.5, -7, 5, 14);
+      ctx.fillStyle = '#fab1a0';
+      ctx.fillRect(-2, -2, 4, 4);
+      ctx.restore();
+    }
 
     ctx.restore();
   }

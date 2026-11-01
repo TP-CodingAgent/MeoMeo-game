@@ -841,6 +841,347 @@
       color: #ffffff;
       box-shadow: 0 2px 8px rgba(255, 71, 87, 0.3);
     }
+
+    /* Shop Modal Styles */
+    #shop-modal .modal-card {
+      max-width: 900px;
+      width: 96%;
+      max-height: min(92vh, calc(100% - 24px));
+      padding: 16px 20px;
+      gap: 10px;
+    }
+
+    .shop-layout {
+      display: flex;
+      gap: 16px;
+      margin-top: 6px;
+      text-align: left;
+      height: calc(100% - 70px);
+      min-height: 420px;
+    }
+
+    @media (max-width: 768px) {
+      .shop-layout {
+        flex-direction: column;
+      }
+    }
+
+    .shop-preview-panel {
+      width: 250px;
+      flex-shrink: 0;
+      background: #f8f9fa;
+      border: 1.5px solid #e9ecef;
+      border-radius: 16px;
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .shop-preview-canvas {
+      width: 220px;
+      height: 200px;
+      background: radial-gradient(circle, #ffffff 40%, #f1f2f6 100%);
+      border-radius: 14px;
+      border: 1.5px solid #dfe4ea;
+      box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.05);
+    }
+
+    .shop-preview-meta {
+      width: 100%;
+      background: #ffffff;
+      border-radius: 10px;
+      padding: 8px 10px;
+      border: 1px solid #dfe4ea;
+      font-size: 11px;
+      color: #57606f;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .shop-preview-meta-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .shop-preview-meta-label {
+      font-weight: 700;
+      color: #747d8c;
+    }
+
+    .shop-preview-meta-val {
+      font-weight: 800;
+      color: #2f3542;
+      max-width: 130px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .shop-content-panel {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      overflow: hidden;
+    }
+
+    .shop-top-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .shop-tabs {
+      display: flex;
+      gap: 6px;
+    }
+
+    .shop-tab-btn {
+      padding: 6px 14px;
+      border-radius: 20px;
+      border: 1.5px solid #dfe4ea;
+      background: #ffffff;
+      font-size: 13px;
+      font-weight: 800;
+      color: #57606f;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s ease;
+    }
+
+    .shop-tab-btn:hover {
+      border-color: #ff9ff3;
+      color: #ff4757;
+    }
+
+    .shop-tab-btn.active {
+      background: linear-gradient(135deg, #ff6b8b, #ff4757);
+      color: #ffffff;
+      border-color: transparent;
+      box-shadow: 0 3px 8px rgba(255, 71, 87, 0.25);
+    }
+
+    .shop-balance-badge {
+      background: linear-gradient(135deg, #ffa502, #ff7f50);
+      color: #ffffff;
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-size: 13px;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      box-shadow: 0 3px 10px rgba(255, 165, 2, 0.3);
+    }
+
+    .shop-subfilters {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    .shop-subfilter-btn {
+      padding: 3px 10px;
+      border-radius: 12px;
+      border: 1px solid #ced6e0;
+      background: #ffffff;
+      font-size: 11px;
+      font-weight: 700;
+      color: #747d8c;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+
+    .shop-subfilter-btn:hover {
+      border-color: #ff6b81;
+      color: #ff4757;
+    }
+
+    .shop-subfilter-btn.active {
+      background: #fff0f3;
+      border-color: #ff4757;
+      color: #ff4757;
+    }
+
+    .shop-catalog-scroll {
+      flex: 1;
+      overflow-y: auto;
+      padding-right: 4px;
+    }
+
+    .shop-catalog-scroll::-webkit-scrollbar {
+      width: 6px;
+    }
+    .shop-catalog-scroll::-webkit-scrollbar-thumb {
+      background: #ced6e0;
+      border-radius: 4px;
+    }
+
+    .shop-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+      padding-bottom: 8px;
+    }
+
+    @media (max-width: 600px) {
+      .shop-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .shop-item-card {
+      background: #ffffff;
+      border-radius: 14px;
+      padding: 10px 12px;
+      border: 1.5px solid #e9ecef;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      transition: all 0.2s ease;
+      position: relative;
+    }
+
+    .shop-item-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 14px rgba(0, 0, 0, 0.09);
+      border-color: #ff9ff3;
+    }
+
+    .shop-item-card.equipped {
+      border-color: #1dd1a1;
+      background: #f0fff4;
+    }
+
+    .shop-card-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .shop-card-icon {
+      font-size: 26px;
+      width: 38px;
+      height: 38px;
+      border-radius: 10px;
+      background: #f1f2f6;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .shop-card-info {
+      flex: 1;
+      overflow: hidden;
+    }
+
+    .shop-card-name {
+      font-size: 13px;
+      font-weight: 800;
+      color: #2f3542;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .shop-card-tag {
+      display: inline-block;
+      font-size: 9px;
+      font-weight: 800;
+      text-transform: uppercase;
+      padding: 1px 6px;
+      border-radius: 6px;
+      background: #e4e7eb;
+      color: #57606f;
+      margin-top: 2px;
+    }
+
+    .shop-card-desc {
+      font-size: 11px;
+      color: #747d8c;
+      line-height: 1.35;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+      min-height: 30px;
+    }
+
+    .shop-card-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: auto;
+      padding-top: 4px;
+      border-top: 1px solid #f1f2f6;
+    }
+
+    .shop-card-price {
+      font-size: 12px;
+      font-weight: 800;
+      color: #ff9f43;
+      display: flex;
+      align-items: center;
+      gap: 3px;
+    }
+
+    .shop-action-btn {
+      padding: 5px 12px;
+      border-radius: 14px;
+      border: none;
+      font-size: 11px;
+      font-weight: 800;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .shop-action-btn.buy {
+      background: linear-gradient(135deg, #ffa502, #ff7f50);
+      color: #ffffff;
+      box-shadow: 0 2px 6px rgba(255, 165, 2, 0.25);
+    }
+    .shop-action-btn.buy:hover {
+      transform: scale(1.05);
+    }
+
+    .shop-action-btn.equip {
+      background: #1dd1a1;
+      color: #ffffff;
+      box-shadow: 0 2px 6px rgba(29, 209, 161, 0.25);
+    }
+    .shop-action-btn.equip:hover {
+      background: #10ac84;
+      transform: scale(1.05);
+    }
+
+    .shop-action-btn.equipped {
+      background: #2ed573;
+      color: #ffffff;
+      cursor: default;
+    }
+
+    .shop-action-btn.unequip {
+      background: #f1f2f6;
+      color: #eb4d4b;
+      border: 1px solid #ff7979;
+    }
+    .shop-action-btn.unequip:hover {
+      background: #ff7979;
+      color: #ffffff;
+    }
   </style>
 </head>
 <body>
@@ -878,6 +1219,11 @@
           <span>📖</span>
           <span>Bộ Sưu Tập</span>
           <span id="hud-gallery-badge" style="background:#ff4757; color:#fff; border-radius:10px; padding:1px 6px; font-size:11px;">0/12</span>
+        </button>
+        <button class="hud-btn" id="btn-shop" title="Cửa hàng mua skin súng và trang phục mèo">
+          <span>🛍️</span>
+          <span>Cửa Hàng</span>
+          <span id="hud-paw-points" style="background:#ffa502; color:#fff; border-radius:10px; padding:1px 6px; font-size:11px;">0 🐾</span>
         </button>
         <button class="hud-btn" id="btn-settings" title="Cài đặt trò chơi">
           <span>⚙️</span>
@@ -973,6 +1319,72 @@
 
         <div style="margin-top: 4px;">
           <button class="btn-primary" id="btn-close-gallery">Đóng Bộ Sưu Tập</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Shop Modal Overlay -->
+    <div class="modal-overlay" id="shop-modal" style="z-index: 105;">
+      <div class="modal-card">
+        <button class="modal-close-icon-btn" id="btn-icon-close-shop" title="Đóng">✕</button>
+
+        <div class="modal-title">
+          <span>🛍️ Tiệm Tạp Hóa Mèo Cưng</span>
+        </div>
+        <p style="font-size: 13px; color: #747d8c; margin-top: -4px;">
+          Đổi điểm thưởng Paw Points lấy Skin súng độc lạ và trang phục thời trang cho mèo cưng!
+        </p>
+
+        <div class="shop-layout">
+          <!-- Preview Box Left -->
+          <div class="shop-preview-panel">
+            <span style="font-size: 12px; font-weight: 800; color: #57606f;">🎨 Xem Trước Trực Quan:</span>
+            <canvas class="shop-preview-canvas" id="shop-preview-canvas" width="220" height="200"></canvas>
+            
+            <div class="shop-preview-meta" id="shop-preview-meta">
+              <!-- Dynamically populated -->
+            </div>
+          </div>
+
+          <!-- Catalog Box Right -->
+          <div class="shop-content-panel">
+            <!-- Top bar: Tabs & Balance -->
+            <div class="shop-top-bar">
+              <div class="shop-tabs">
+                <button class="shop-tab-btn active" id="shop-tab-guns" data-tab="guns">
+                  <span>🔫</span> Súng & Hiệu Ứng
+                </button>
+                <button class="shop-tab-btn" id="shop-tab-cats" data-tab="cats">
+                  <span>🐱</span> Trang Phục Mèo
+                </button>
+              </div>
+
+              <div class="shop-balance-badge" id="shop-balance-badge">
+                <span>🐾 Ví Điểm:</span>
+                <span id="shop-points-val">0</span>
+              </div>
+            </div>
+
+            <!-- Subfilters for Cat Accessories -->
+            <div class="shop-subfilters" id="shop-subfilters" style="display: none;">
+              <button class="shop-subfilter-btn active" data-slot="all">Tất Cả</button>
+              <button class="shop-subfilter-btn" data-slot="head">🎩 Đội Đầu</button>
+              <button class="shop-subfilter-btn" data-slot="face">🕶️ Mắt & Mặt</button>
+              <button class="shop-subfilter-btn" data-slot="back">🦸 Lưng & Áo</button>
+              <button class="shop-subfilter-btn" data-slot="aura">✨ Hào Quang</button>
+            </div>
+
+            <!-- Scrollable Catalog Items Grid -->
+            <div class="shop-catalog-scroll">
+              <div class="shop-grid" id="shop-grid">
+                <!-- Dynamically populated -->
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div style="margin-top: 4px; display: flex; justify-content: flex-end;">
+          <button class="btn-primary" id="btn-close-shop">Đóng Cửa Hàng</button>
         </div>
       </div>
     </div>
@@ -1155,6 +1567,9 @@
     import { Game, GAME_STATES, GAME_MODES } from './src/main.js';
     import { CAT_CATALOG, BUBBLE_SHAPES } from './src/data/cat-catalog.js';
     import { STAGE_CONFIGS } from './src/scenes/scene-manager.js';
+    import { SHOP_CATALOG, SHOP_ITEM_TYPES, CAT_SLOTS, SHOP_MAP } from './src/data/shop-catalog.js';
+    import { Cannon } from './src/systems/cannon.js';
+    import { Cat } from './src/entities/cat.js';
 
     const canvas = document.getElementById('game-canvas');
     const game = new Game(canvas);
@@ -1165,6 +1580,7 @@
     const hudTimerContainer = document.getElementById('hud-timer-container');
     const hudStageName = document.getElementById('hud-stage-name');
     const hudGalleryBadge = document.getElementById('hud-gallery-badge');
+    const hudPawPoints = document.getElementById('hud-paw-points');
     const hudMuteIcon = document.getElementById('hud-mute-icon');
     const hudPauseIcon = document.getElementById('hud-pause-icon');
     const tankBarFill = document.getElementById('tank-bar-fill');
@@ -1178,6 +1594,19 @@
     const catDetailModal = document.getElementById('cat-detail-modal');
     const gameOverModal = document.getElementById('game-over-modal');
     const settingsModal = document.getElementById('settings-modal');
+    const shopModal = document.getElementById('shop-modal');
+
+    // Shop Elements
+    const btnShop = document.getElementById('btn-shop');
+    const btnCloseShop = document.getElementById('btn-close-shop');
+    const btnIconCloseShop = document.getElementById('btn-icon-close-shop');
+    const shopPointsVal = document.getElementById('shop-points-val');
+    const shopGrid = document.getElementById('shop-grid');
+    const shopTabGuns = document.getElementById('shop-tab-guns');
+    const shopTabCats = document.getElementById('shop-tab-cats');
+    const shopSubfilters = document.getElementById('shop-subfilters');
+    const shopPreviewCanvas = document.getElementById('shop-preview-canvas');
+    const shopPreviewMeta = document.getElementById('shop-preview-meta');
 
     // Buttons
     const btnModeRelax = document.getElementById('btn-mode-relax');
@@ -1797,8 +2226,264 @@
       game.state = GAME_STATES.MENU;
     });
 
+    // ==================== SHOP & CUSTOMIZATION LOGIC ====================
+    let currentShopTab = 'guns'; // 'guns' | 'cats'
+    let currentCatSlotFilter = 'all'; // 'all' | 'head' | 'face' | 'back' | 'aura'
+
+    const previewBlaster = new Cannon(220, 200);
+    const previewCat = new Cat(CAT_CATALOG[0], 110, 115);
+
+    function updatePawPointsUI(pts) {
+      const val = typeof pts === 'number' ? pts : game.shopManager.pawPoints;
+      const formatted = val.toLocaleString();
+      if (hudPawPoints) hudPawPoints.textContent = `${formatted} 🐾`;
+      if (shopPointsVal) shopPointsVal.textContent = `${formatted} 🐾`;
+    }
+
+    window.onPointsUpdated = (pts) => {
+      updatePawPointsUI(pts);
+      if (shopModal.classList.contains('active')) {
+        renderShopGrid();
+      }
+    };
+
+    function openShop() {
+      updatePawPointsUI();
+      renderShopGrid();
+      renderShopLivePreview();
+      shopModal.classList.add('active');
+    }
+
+    function closeShop() {
+      shopModal.classList.remove('active');
+    }
+
+    if (btnShop) btnShop.addEventListener('click', openShop);
+    if (btnCloseShop) btnCloseShop.addEventListener('click', closeShop);
+    if (btnIconCloseShop) btnIconCloseShop.addEventListener('click', closeShop);
+    shopModal.addEventListener('click', (e) => {
+      if (e.target === shopModal) closeShop();
+    });
+
+    // Tab switching
+    shopTabGuns.addEventListener('click', () => {
+      currentShopTab = 'guns';
+      shopTabGuns.classList.add('active');
+      shopTabCats.classList.remove('active');
+      shopSubfilters.style.display = 'none';
+      renderShopGrid();
+      renderShopLivePreview();
+    });
+
+    shopTabCats.addEventListener('click', () => {
+      currentShopTab = 'cats';
+      shopTabCats.classList.add('active');
+      shopTabGuns.classList.remove('active');
+      shopSubfilters.style.display = 'flex';
+      renderShopGrid();
+      renderShopLivePreview();
+    });
+
+    // Subfilter switching for cat slots
+    document.querySelectorAll('.shop-subfilter-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.shop-subfilter-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        currentCatSlotFilter = btn.getAttribute('data-slot');
+        renderShopGrid();
+      });
+    });
+
+    function renderShopLivePreview() {
+      const cvs = shopPreviewCanvas;
+      if (!cvs) return;
+      const ctx = cvs.getContext('2d');
+      ctx.clearRect(0, 0, cvs.width, cvs.height);
+
+      if (currentShopTab === 'guns') {
+        // Draw gun preview
+        ctx.save();
+        previewBlaster.currentGunX = 110;
+        previewBlaster.baseY = 220;
+        previewBlaster.aimX = 110;
+        previewBlaster.aimY = 0;
+        previewBlaster.setSkin(game.shopManager.equippedGunSkin);
+        previewBlaster.renderBlaster(ctx);
+        ctx.restore();
+
+        const currentSkinItem = SHOP_MAP.get(game.shopManager.equippedGunSkin);
+        const currentEffectItem = SHOP_MAP.get(game.shopManager.equippedGunEffect);
+
+        shopPreviewMeta.innerHTML = `
+          <div class="shop-preview-meta-row">
+            <span class="shop-preview-meta-label">🔫 Skin Súng:</span>
+            <span class="shop-preview-meta-val" title="${currentSkinItem ? currentSkinItem.name : ''}">${currentSkinItem ? currentSkinItem.name : 'Mặc định'}</span>
+          </div>
+          <div class="shop-preview-meta-row">
+            <span class="shop-preview-meta-label">✨ Hiệu Ứng:</span>
+            <span class="shop-preview-meta-val" title="${currentEffectItem ? currentEffectItem.name : ''}">${currentEffectItem ? currentEffectItem.name : 'Bọt thường'}</span>
+          </div>
+        `;
+      } else {
+        // Draw cat model preview
+        ctx.save();
+        previewCat.x = 110;
+        previewCat.y = 120;
+        previewCat.animTime = performance.now() / 1000;
+        previewCat.direction = 1;
+        previewCat.squashStretchX = 1;
+        previewCat.squashStretchY = 1;
+        previewCat.render(ctx, game.shopManager.equippedCatAccessories);
+        ctx.restore();
+
+        const acc = game.shopManager.equippedCatAccessories;
+        const headItem = acc[CAT_SLOTS.HEAD] ? SHOP_MAP.get(acc[CAT_SLOTS.HEAD]) : null;
+        const faceItem = acc[CAT_SLOTS.FACE] ? SHOP_MAP.get(acc[CAT_SLOTS.FACE]) : null;
+        const backItem = acc[CAT_SLOTS.BACK] ? SHOP_MAP.get(acc[CAT_SLOTS.BACK]) : null;
+        const auraItem = acc[CAT_SLOTS.AURA] ? SHOP_MAP.get(acc[CAT_SLOTS.AURA]) : null;
+
+        shopPreviewMeta.innerHTML = `
+          <div class="shop-preview-meta-row">
+            <span class="shop-preview-meta-label">🎩 Đầu:</span>
+            <span class="shop-preview-meta-val">${headItem ? headItem.name : 'Trống'}</span>
+          </div>
+          <div class="shop-preview-meta-row">
+            <span class="shop-preview-meta-label">🕶️ Mắt:</span>
+            <span class="shop-preview-meta-val">${faceItem ? faceItem.name : 'Trống'}</span>
+          </div>
+          <div class="shop-preview-meta-row">
+            <span class="shop-preview-meta-label">🦸 Lưng:</span>
+            <span class="shop-preview-meta-val">${backItem ? backItem.name : 'Trống'}</span>
+          </div>
+          <div class="shop-preview-meta-row">
+            <span class="shop-preview-meta-label">✨ Hào quang:</span>
+            <span class="shop-preview-meta-val">${auraItem ? auraItem.name : 'Trống'}</span>
+          </div>
+        `;
+      }
+    }
+
+    function renderShopGrid() {
+      shopGrid.innerHTML = '';
+
+      let items = [];
+      if (currentShopTab === 'guns') {
+        items = SHOP_CATALOG.filter(it => it.type === SHOP_ITEM_TYPES.GUN_SKIN || it.type === SHOP_ITEM_TYPES.GUN_EFFECT);
+      } else {
+        items = SHOP_CATALOG.filter(it => it.type === SHOP_ITEM_TYPES.CAT_ACCESSORY);
+        if (currentCatSlotFilter !== 'all') {
+          items = items.filter(it => it.slot === currentCatSlotFilter);
+        }
+      }
+
+      items.forEach(item => {
+        const isOwned = game.shopManager.isOwned(item.id);
+        const isEquipped = game.shopManager.isEquipped(item.id);
+
+        let typeLabel = 'Vật phẩm';
+        if (item.type === SHOP_ITEM_TYPES.GUN_SKIN) typeLabel = 'Skin Súng';
+        else if (item.type === SHOP_ITEM_TYPES.GUN_EFFECT) typeLabel = 'Hiệu Ứng Đạn';
+        else if (item.slot === CAT_SLOTS.HEAD) typeLabel = 'Đội Đầu';
+        else if (item.slot === CAT_SLOTS.FACE) typeLabel = 'Mắt & Mặt';
+        else if (item.slot === CAT_SLOTS.BACK) typeLabel = 'Lưng & Áo';
+        else if (item.slot === CAT_SLOTS.AURA) typeLabel = 'Hào Quang';
+
+        const card = document.createElement('div');
+        card.className = `shop-item-card ${isEquipped ? 'equipped' : ''}`;
+
+        let actionButtonHtml = '';
+        if (!isOwned) {
+          const canAfford = game.shopManager.pawPoints >= item.price;
+          actionButtonHtml = `
+            <button class="shop-action-btn buy" data-buy="${item.id}" ${canAfford ? '' : 'style="opacity:0.75;"'}>
+              🛒 Mua (${item.price.toLocaleString()} 🐾)
+            </button>
+          `;
+        } else if (isEquipped) {
+          const canUnequip = item.type === SHOP_ITEM_TYPES.CAT_ACCESSORY || item.id !== 'classic_blaster' && item.id !== 'none_effect';
+          actionButtonHtml = `
+            <div style="display: flex; gap: 4px;">
+              <button class="shop-action-btn equipped" disabled>✓ Đang Dùng</button>
+              ${canUnequip ? `<button class="shop-action-btn unequip" data-unequip="${item.id}">Tháo</button>` : ''}
+            </div>
+          `;
+        } else {
+          actionButtonHtml = `
+            <button class="shop-action-btn equip" data-equip="${item.id}">
+              ✨ Trang Bị
+            </button>
+          `;
+        }
+
+        card.innerHTML = `
+          <div class="shop-card-header">
+            <div class="shop-card-icon">${item.icon}</div>
+            <div class="shop-card-info">
+              <div class="shop-card-name" title="${item.name}">${item.name}</div>
+              <span class="shop-card-tag">${typeLabel}</span>
+            </div>
+          </div>
+          <div class="shop-card-desc" title="${item.desc}">${item.desc}</div>
+          <div class="shop-card-footer">
+            <span class="shop-card-price">${item.price === 0 ? 'Miễn Phí' : `${item.price.toLocaleString()} 🐾`}</span>
+            ${actionButtonHtml}
+          </div>
+        `;
+
+        // Handle Buy
+        const buyBtn = card.querySelector('[data-buy]');
+        if (buyBtn) {
+          buyBtn.addEventListener('click', () => {
+            const res = game.buyCosmetic(item.id);
+            if (res.success) {
+              game.audioManager.playUnlock();
+              game.showToast(`🎉 Đã mua thành công: ${item.icon} ${item.name}!`);
+              updatePawPointsUI();
+              renderShopGrid();
+              renderShopLivePreview();
+            } else {
+              game.showToast(`⚠️ ${res.reason}`);
+            }
+          });
+        }
+
+        // Handle Equip
+        const equipBtn = card.querySelector('[data-equip]');
+        if (equipBtn) {
+          equipBtn.addEventListener('click', () => {
+            game.equipCosmetic(item.id);
+            game.audioManager.playPop();
+            game.showToast(`✨ Đã trang bị: ${item.icon} ${item.name}!`);
+            renderShopGrid();
+            renderShopLivePreview();
+          });
+        }
+
+        // Handle Unequip
+        const unequipBtn = card.querySelector('[data-unequip]');
+        if (unequipBtn) {
+          unequipBtn.addEventListener('click', () => {
+            if (item.type === SHOP_ITEM_TYPES.CAT_ACCESSORY) {
+              game.unequipCosmetic(SHOP_ITEM_TYPES.CAT_ACCESSORY, item.slot);
+            } else if (item.type === SHOP_ITEM_TYPES.GUN_EFFECT) {
+              game.unequipCosmetic(SHOP_ITEM_TYPES.GUN_EFFECT);
+            }
+            game.audioManager.playPop();
+            game.showToast(`Đã tháo ${item.icon} ${item.name}`);
+            renderShopGrid();
+            renderShopLivePreview();
+          });
+        }
+
+        shopGrid.appendChild(card);
+      });
+    }
+
+    // ==================== END SHOP & CUSTOMIZATION LOGIC ====================
+
     // High-performance dirty-checked HUD updater (Zero DOM thrashing at 60fps)
     let lastScore = -1;
+    let lastPawPoints = -1;
     let lastTimer = -1;
     let lastAmmo = -1;
     let lastMaxAmmo = -1;
@@ -1869,6 +2554,14 @@
       if (badgeStr !== lastBadgeStr) {
         lastBadgeStr = badgeStr;
         hudGalleryBadge.textContent = badgeStr;
+      }
+
+      // 5. Paw Points dirty check
+      const points = game.shopManager.pawPoints;
+      if (points !== lastPawPoints) {
+        lastPawPoints = points;
+        if (hudPawPoints) hudPawPoints.textContent = `${points.toLocaleString()} 🐾`;
+        if (shopPointsVal) shopPointsVal.textContent = `${points.toLocaleString()} 🐾`;
       }
 
       requestAnimationFrame(updateHUD);

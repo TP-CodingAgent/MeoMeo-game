@@ -15,7 +15,7 @@ PORT=8088
 # 1. Environment & Test check
 echo "[1/3] Kiểm tra môi trường & Chạy kiểm thử..."
 if command -v node >/dev/null 2>&1; then
-    echo "  [OK] Đã tìm thấy Node.js. Tiến hành chạy 27 bài test..."
+    echo "  [OK] Đã tìm thấy Node.js. Tiến hành chạy 31 bài test..."
     node tests/cli-runner.js
 else
     echo "  [INFO] Không tìm thấy Node.js (Game thuần Vanilla ES6 không bắt buộc Node.js)."

@@ -20,6 +20,8 @@ import { CatSpawner, CAT_STATES } from '../src/systems/spawner.js';
 import { SceneManager, STAGE_CONFIGS } from '../src/scenes/scene-manager.js';
 import { Prop } from '../src/entities/prop.js';
 import { Cat } from '../src/entities/cat.js';
+import { SHOP_CATALOG, SHOP_ITEM_TYPES, CAT_SLOTS, SHOP_MAP } from '../src/data/shop-catalog.js';
+import { ShopManager } from '../src/systems/shop-manager.js';
 
 export async function runAllTests(reporter) {
   const suites = [
@@ -31,7 +33,8 @@ export async function runAllTests(reporter) {
     testPropAndStartleMechanics,
     testCatStateMachineAndHitTinting,
     testSceneManagerAndCollectionProgress,
-    testGameSettingsAndStageExpansion
+    testGameSettingsAndStageExpansion,
+    testShopSystemAndModularOutfits
   ];
 
   for (const suite of suites) {
@@ -384,5 +387,129 @@ async function testGameSettingsAndStageExpansion(t) {
     t.assertEqual(fakeGame.spawner.minActiveCats, 4, 'Spawner min cats reset to default 4');
     t.assertEqual(fakeGame.sceneManager.unlockedCats.size, 0, 'Unlocked cats cleared');
     t.assertEqual(safeStorage.getItem('cat_shooter_high_score'), null, 'SafeStorage cleared');
+  });
+}
+
+async function testShopSystemAndModularOutfits(t) {
+  t.suite('10. Shop System & Modular Cat Outfits Tests');
+
+  t.test('Catalog integrity for gun skins, gun effects, and cat modular accessories', () => {
+    t.assertTrue(SHOP_CATALOG.length >= 20, 'Catalog should contain at least 20 customizable items');
+
+    const gunSkins = SHOP_CATALOG.filter(it => it.type === SHOP_ITEM_TYPES.GUN_SKIN);
+    const gunEffects = SHOP_CATALOG.filter(it => it.type === SHOP_ITEM_TYPES.GUN_EFFECT);
+    const catAccs = SHOP_CATALOG.filter(it => it.type === SHOP_ITEM_TYPES.CAT_ACCESSORY);
+
+    t.assertEqual(gunSkins.length, 5, 'Must contain exactly 5 gun skins');
+    t.assertEqual(gunEffects.length, 4, 'Must contain exactly 4 gun muzzle/trail effects');
+    t.assertTrue(catAccs.length >= 12, 'Must contain at least 12 cat modular accessories');
+
+    // Slot validation for cat accessories
+    const slots = new Set(catAccs.map(it => it.slot));
+    t.assertTrue(slots.has(CAT_SLOTS.HEAD), 'Must have head accessories');
+    t.assertTrue(slots.has(CAT_SLOTS.FACE), 'Must have face/eyes accessories');
+    t.assertTrue(slots.has(CAT_SLOTS.BACK), 'Must have back/cape accessories');
+    t.assertTrue(slots.has(CAT_SLOTS.AURA), 'Must have aura accessories');
+  });
+
+  t.test('Purchasing with Paw Points and balance deduction', () => {
+    const shop = new ShopManager();
+    shop.resetAllData();
+
+    t.assertEqual(shop.pawPoints, 0, 'Initial points must be 0');
+    t.assertTrue(shop.isOwned('classic_blaster'), 'Default classic blaster must be owned');
+    t.assertTrue(shop.isOwned('none_effect'), 'Default none effect must be owned');
+
+    // Try buying cyber_cannon (5000 points) with 0 points -> fails
+    const failRes = shop.buyItem('cyber_cannon');
+    t.assertFalse(failRes.success, 'Purchase should fail when points are insufficient');
+    t.assertFalse(shop.isOwned('cyber_cannon'), 'Should not own cyber cannon yet');
+
+    // Add 10000 points
+    shop.addPoints(10000);
+    t.assertEqual(shop.pawPoints, 10000, 'Paw points should be 10000');
+
+    // Buy cyber_cannon successfully
+    const okRes = shop.buyItem('cyber_cannon');
+    t.assertTrue(okRes.success, 'Purchase should succeed');
+    t.assertEqual(shop.pawPoints, 5000, 'Paw points should deduct 5000');
+    t.assertTrue(shop.isOwned('cyber_cannon'), 'Cyber cannon should now be owned');
+    t.assertEqual(shop.equippedGunSkin, 'cyber_cannon', 'Auto-equips upon purchase');
+  });
+
+  t.test('Gun customization constraint: Only 1 skin and 1 effect equipped at a time', () => {
+    const shop = new ShopManager();
+    shop.resetAllData();
+    shop.addPoints(50000);
+
+    shop.buyItem('cyber_cannon');
+    shop.buyItem('shark_bazooka');
+    shop.buyItem('sparkle_trail');
+    shop.buyItem('heart_stream');
+
+    shop.equipItem('cyber_cannon');
+    t.assertEqual(shop.equippedGunSkin, 'cyber_cannon', 'Cyber cannon equipped');
+
+    // Equipping shark bazooka replaces cyber cannon (strictly 1 skin at a time)
+    shop.equipItem('shark_bazooka');
+    t.assertEqual(shop.equippedGunSkin, 'shark_bazooka', 'Shark bazooka should replace cyber cannon');
+    t.assertFalse(shop.isEquipped('cyber_cannon'), 'Cyber cannon should no longer be equipped');
+
+    // Equipping gun effects (strictly 1 effect at a time)
+    shop.equipItem('sparkle_trail');
+    t.assertEqual(shop.equippedGunEffect, 'sparkle_trail', 'Sparkle trail equipped');
+    shop.equipItem('heart_stream');
+    t.assertEqual(shop.equippedGunEffect, 'heart_stream', 'Heart stream replaces sparkle trail');
+    t.assertFalse(shop.isEquipped('sparkle_trail'), 'Sparkle trail no longer equipped');
+  });
+
+  t.test('Cat customization: Multi-slot simultaneous equipment across distinct groups', () => {
+    const shop = new ShopManager();
+    shop.resetAllData();
+    shop.addPoints(100000);
+
+    // Buy items across 4 different slots
+    shop.buyItem('crown');           // HEAD
+    shop.buyItem('top_hat');         // HEAD
+    shop.buyItem('sunglasses');      // FACE
+    shop.buyItem('superhero_cape');  // BACK
+    shop.buyItem('sparkle_aura');    // AURA
+
+    // Equip 1 item per slot -> all 4 distinct groups equipped simultaneously!
+    shop.equipItem('crown');
+    shop.equipItem('sunglasses');
+    shop.equipItem('superhero_cape');
+    shop.equipItem('sparkle_aura');
+
+    t.assertEqual(shop.equippedCatAccessories[CAT_SLOTS.HEAD], 'crown', 'Crown in HEAD slot');
+    t.assertEqual(shop.equippedCatAccessories[CAT_SLOTS.FACE], 'sunglasses', 'Sunglasses in FACE slot');
+    t.assertEqual(shop.equippedCatAccessories[CAT_SLOTS.BACK], 'superhero_cape', 'Superhero cape in BACK slot');
+    t.assertEqual(shop.equippedCatAccessories[CAT_SLOTS.AURA], 'sparkle_aura', 'Sparkle aura in AURA slot');
+
+    // All 4 accessories simultaneously active
+    t.assertTrue(shop.isEquipped('crown'), 'Crown is equipped');
+    t.assertTrue(shop.isEquipped('sunglasses'), 'Sunglasses is equipped');
+    t.assertTrue(shop.isEquipped('superhero_cape'), 'Cape is equipped');
+    t.assertTrue(shop.isEquipped('sparkle_aura'), 'Aura is equipped');
+
+    // In same group (HEAD), equipping top_hat replaces crown
+    shop.equipItem('top_hat');
+    t.assertEqual(shop.equippedCatAccessories[CAT_SLOTS.HEAD], 'top_hat', 'Top hat replaced crown');
+    t.assertFalse(shop.isEquipped('crown'), 'Crown no longer equipped');
+    t.assertTrue(shop.isEquipped('sunglasses'), 'Other slots (face) remain intact');
+
+    // Unequip specific slot
+    shop.unequipItem(SHOP_ITEM_TYPES.CAT_ACCESSORY, CAT_SLOTS.FACE);
+    t.assertEqual(shop.equippedCatAccessories[CAT_SLOTS.FACE], null, 'FACE slot cleared');
+    t.assertFalse(shop.isEquipped('sunglasses'), 'Sunglasses unequipped');
+    t.assertEqual(shop.equippedCatAccessories[CAT_SLOTS.BACK], 'superhero_cape', 'BACK slot still intact');
+
+    // Factory reset cleans shop state
+    shop.resetAllData();
+    t.assertEqual(shop.pawPoints, 0, 'Reset points to 0');
+    t.assertEqual(shop.equippedGunSkin, 'classic_blaster', 'Reset skin to classic');
+    t.assertEqual(shop.equippedGunEffect, 'none_effect', 'Reset effect to none');
+    t.assertEqual(shop.equippedCatAccessories[CAT_SLOTS.HEAD], null, 'Head slot empty');
+    t.assertEqual(shop.equippedCatAccessories[CAT_SLOTS.BACK], null, 'Back slot empty');
   });
 }
