@@ -113,9 +113,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   * Glassmorphism badge: **Tác Giả: Thái Phùng** • **Năm 2026** • **Hồ Chí Minh, Việt Nam**.
   * Floating animation (`homeAuthorFloat`) and pulsating cat paw indicator (`authorPawWiggle`).
 * **Home Page Dynamic Cat Paw Tracks Effect:**
-  * 3 virtual cats roam the Start Screen in independent wandering paths with pastel coral, amber, and lavender paw colors.
+  * 5 virtual cats roam the Start Screen in independent wandering paths with 5 charming pastel shades (Sakura Pink, Honey Amber, Lavender, Mint Green, and Sky Blue).
   * **Strict Trail Rule:** Displays a maximum of 4 paw prints per cat. When a new step is taken, the oldest paw print smoothly fades away.
-  * Realistic alternating left/right foot offset and direction-aligned toe rotation.
+  * **Natural Gait Orientation:** Paw rotation is accurately aligned along the cat's travel vector (toes facing forward) with authentic left/right lateral stride alternation and subtle outward toe splay.
   * **Zero CPU Overhead During Play:** The animation loop is completely halted (`cancelAnimationFrame`) when entering gameplay.
 * **Game Screen Author Badge (Bottom Right):**
   * Subtle, elegant author badge in the bottom-right corner: `🐾 Tác giả: Thái Phùng`.

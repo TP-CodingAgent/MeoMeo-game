@@ -1963,16 +1963,21 @@
           this.distTraveled = 0;
           this.isLeftFoot = !this.isLeftFoot;
 
-          // Vị trí lệch trái/phải so với trục đi
-          const side = (this.isLeftFoot ? -1 : 1) * 9;
+          // Vị trí lệch trái/phải so với trục đi (dáng đi so le tự nhiên của mèo)
+          const side = (this.isLeftFoot ? -1 : 1) * 8.5;
           const perp = this.angle + Math.PI / 2;
           const px = this.x + Math.cos(perp) * side;
           const py = this.y + Math.sin(perp) * side;
 
+          // Hướng ngón chân CHUẨN XÁC: Các ngón chân luôn hướng về phía trước theo hướng đi (this.angle)
+          // Kết hợp góc xòe nhẹ tự nhiên ra ngoài theo bàn chân trái/phải
+          const toeOutAngle = this.isLeftFoot ? -0.09 : 0.09;
+          const naturalPawAngle = this.angle + Math.PI / 2 + toeOutAngle;
+
           this.pawPrints.push({
             x: px,
             y: py,
-            angle: this.angle,
+            angle: naturalPawAngle,
             opacity: 0.72,
             isExpiring: false,
             size: 14
@@ -2007,11 +2012,13 @@
       }
     }
 
-    // Khởi tạo 3 chú mèo với 3 hướng và 3 sắc màu pastel khác nhau
+    // Khởi tạo 5 chú mèo ảo với 5 hướng di chuyển và 5 sắc màu pastel dễ thương
     const homeCats = [
-      new VirtualCatWalker('rgba(255, 107, 129, 0.65)', -Math.PI * 0.25, 0.22, 0.75), // Mèo hồng cam đi chéo lên
-      new VirtualCatWalker('rgba(255, 159, 67, 0.65)', Math.PI * 0.75, 0.78, 0.30),  // Mèo cam vàng đi chéo xuống
-      new VirtualCatWalker('rgba(112, 111, 211, 0.65)', Math.PI * 0.15, 0.45, 0.82)   // Mèo tím pastel dạo quanh giữa
+      new VirtualCatWalker('rgba(255, 107, 129, 0.70)', -Math.PI * 0.25, 0.15, 0.80), // 1. Mèo Hồng Đào Sakura (đi chéo lên phải)
+      new VirtualCatWalker('rgba(255, 159, 67, 0.70)', Math.PI * 0.80, 0.85, 0.22),  // 2. Mèo Cam Mật Ong (đi chéo xuống trái)
+      new VirtualCatWalker('rgba(112, 111, 211, 0.70)', Math.PI * 0.25, 0.20, 0.32),  // 3. Mèo Tím Oải Hương (đi chéo xuống phải)
+      new VirtualCatWalker('rgba(29, 209, 161, 0.70)', -Math.PI * 0.75, 0.82, 0.78), // 4. Mèo Xanh Mint Tươi (đi chéo lên trái)
+      new VirtualCatWalker('rgba(84, 160, 255, 0.70)', 0, 0.48, 0.65)                 // 5. Mèo Xanh Mây Trời (đi ngang giữa sân)
     ];
 
     function resizeHomePaws() {
