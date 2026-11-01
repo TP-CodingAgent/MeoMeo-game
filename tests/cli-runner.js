@@ -1,5 +1,5 @@
 /**
- * Cute Cat Bubble Shooter - CLI Test Runner (Node.js)
+ * T_P: Cute Cat Bubble Shooter - CLI Test Runner (Node.js)
  */
 
 import { runAllTests } from './unit-tests.js';
@@ -47,6 +47,8 @@ class CliReporter {
   }
 }
 
+
+// T_P: Run All Unit Tests
 async function run() {
   console.log('\x1b[1mStarting Unit Tests execution...\x1b[0m');
   const reporter = new CliReporter();

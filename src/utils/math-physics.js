@@ -1,5 +1,5 @@
 /**
- * Math and Physics Utility Module
+ * T- P: Math and Physics Utility Module
  * TP AIDLC - Cute Cat Color Water Shooter
  */
 
@@ -21,18 +21,20 @@ export function randomRange(min, max) {
   return Math.random() * (max - min) + min;
 }
 
+// T- P: Random Choice
 export function randomChoice(array) {
   if (!array || array.length === 0) return null;
   const index = Math.floor(Math.random() * array.length);
   return array[index];
 }
 
+// T -P: Is Point In AABB
 export function isPointInAABB(px, py, rx, ry, rw, rh) {
   return px >= rx && px <= rx + rw && py >= ry && py <= ry + rh;
 }
 
 /**
- * Circle to Circle Collision Check
+ * TP: Circle to Circle Collision Check
  * Accepts both (c1, c2) or (x1, y1, r1, x2, y2, r2)
  */
 export function checkCircleCollision(c1, c2) {

@@ -1,5 +1,5 @@
 /**
- * Cute Cat Bubble Shooter - Procedural Web Audio Synthesizer
+ * TP - Cute Cat Bubble Shooter - Procedural Web Audio Synthesizer
  * Generates adorable, responsive sound effects procedurally without any network lag or external dependencies.
  */
 
@@ -55,6 +55,7 @@ export class Synthesizer {
     osc.stop(t + 0.1);
   }
 
+  // T-P: Play pop sound
   playPop() {
     if (this.muted) return;
     this.init();
@@ -79,7 +80,7 @@ export class Synthesizer {
   }
 
   /**
-   * Adorable Kitten Vocal Pitch-bend Synthesis (Mewww~ / Nyan~)
+   * T P: Adorable Kitten Vocal Pitch-bend Synthesis (Mewww~ / Nyan~)
    */
   playMeow(pitchVariant = 1.0) {
     if (this.muted) return;
@@ -125,6 +126,7 @@ export class Synthesizer {
     subOsc.stop(t + 0.42);
   }
 
+  // T-P: Play thump sound
   playThump() {
     if (this.muted) return;
     this.init();

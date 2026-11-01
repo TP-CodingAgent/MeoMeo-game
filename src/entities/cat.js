@@ -1,5 +1,5 @@
 /**
- * Cute Cat Bubble Shooter - Cat Entity
+ * THAIPHUNG: Cute Cat Bubble Shooter - Cat Entity
  * Rich procedural visuals representing distinct international cat breeds,
  * smooth acceleration/deceleration physics, rarity speed scaling,
  * elevated platforms, and smooth parabolic leap transitions between tiers.
@@ -38,7 +38,7 @@ export class Cat {
     this.leapTargetY = y;
     this.destPlatform = null;
 
-    // Visual attributes
+    // THAIPHUNG: Visual attributes
     this.primaryColor = catalogEntry.primaryColor || '#ffa502';
     this.secondaryColor = catalogEntry.secondaryColor || '#ffffff';
     this.stripesColor = catalogEntry.stripesColor || '#e65100';
@@ -64,7 +64,7 @@ export class Cat {
     this.isHiding = false;
     this.peekFactor = 0;
 
-    // Cat Turnover & Natural Wandering Lifecycle
+    // THAIPHUNG: Cat Turnover & Natural Wandering Lifecycle
     this.lifetime = 0;
     this.maxLifetime = 28 + Math.random() * 20; // 28s - 48s per cat
     this.pettedCount = 0;

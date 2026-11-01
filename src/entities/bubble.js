@@ -1,5 +1,5 @@
 /**
- * Cute Cat Bubble Shooter - Bubble Entity & Pool
+ * TP, T-P: Cute Cat Bubble Shooter - Bubble Entity & Pool
  * Represents soap bubbles shot from the First-Person blaster with
  * ceiling rebound bounce physics (bouncing off top edge, dropping 20-30%, then popping),
  * 3D perspective depth scaling, and multi-shape bubble rendering.
@@ -38,6 +38,7 @@ export class Bubble {
     this.ceilingDropTargetY = 0;
   }
 
+  // T-P: Spawn Bubble
   spawn(x, y, vx, vy, colorHex, radius = 20, shape = 'circle', targetX = 0, targetY = 0) {
     this.x = x;
     this.y = y;
@@ -91,6 +92,7 @@ export class Bubble {
       }
     }
 
+    // TP: Ceiling Rebound Physics
     if (this.hasBouncedCeiling) {
       // Gentle gravity as it floats downward
       this.vy += 180 * dt;
@@ -134,6 +136,7 @@ export class Bubble {
     }
   }
 
+  // TP: Pop Bubble
   render(ctx) {
     if (!this.alive) return;
 

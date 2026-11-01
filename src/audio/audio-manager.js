@@ -1,5 +1,5 @@
 /**
- * Cute Cat Bubble Shooter - Audio Manager
+ * T-P Cute Cat Bubble Shooter - Audio Manager
  * Dual pipeline: HTML5 Audio loading from `sounds/` directory with seamless
  * fallback to procedural Web Audio API Synthesizer (PDR-005, ADR-002).
  */
@@ -62,6 +62,7 @@ export class AudioManager {
     return this.muted;
   }
 
+  // TP-001: Check if audio is muted
   isMuted() {
     return this.muted;
   }
@@ -116,6 +117,7 @@ export class AudioManager {
     this.play('thump', 'playThump');
   }
 
+  // TP-001: Play reload sound
   playReload() {
     this.play('reload', 'playReload');
   }

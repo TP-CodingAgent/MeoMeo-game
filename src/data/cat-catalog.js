@@ -15,6 +15,7 @@ export const BUBBLE_SHAPES = {
   diamond: { id: 'diamond', name: 'Bọt Kim Cương', icon: '💎', desc: 'Bong bóng ngọc quý lấp lánh' }
 };
 
+// Thai Phung: Catalog of cat breeds
 export const CAT_BREEDS = [
   {
     id: 'vietnamese_tabby',

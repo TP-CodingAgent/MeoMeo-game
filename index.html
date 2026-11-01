@@ -392,8 +392,29 @@
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      gap: 18px;
       z-index: 50;
+      overflow: hidden;
+    }
+
+    #home-paws-canvas {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    .start-content-wrap {
+      position: relative;
+      z-index: 2;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      width: 100%;
+      max-width: 900px;
     }
 
     .game-logo {
@@ -416,12 +437,12 @@
     .mode-select-box {
       display: flex;
       gap: 16px;
-      margin-top: 6px;
+      margin-top: 4px;
     }
 
     .mode-card {
       background: #fff;
-      padding: 18px 22px;
+      padding: 16px 22px;
       border-radius: 18px;
       width: 220px;
       cursor: pointer;
@@ -449,6 +470,136 @@
       font-size: 12px;
       color: #747d8c;
       text-align: center;
+    }
+
+    /* Author Badges (Home Screen & Game Screen) */
+    .home-author-badge {
+      margin-top: 6px;
+      background: rgba(255, 255, 255, 0.90);
+      backdrop-filter: blur(10px);
+      padding: 8px 26px;
+      border-radius: 24px;
+      border: 1.5px solid rgba(255, 255, 255, 0.95);
+      box-shadow: 0 6px 22px rgba(255, 107, 139, 0.16);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 3px;
+      animation: homeAuthorFloat 3.2s ease-in-out infinite alternate;
+      user-select: none;
+      pointer-events: auto;
+    }
+
+    @keyframes homeAuthorFloat {
+      0% {
+        transform: translateY(0);
+        box-shadow: 0 6px 18px rgba(255, 107, 139, 0.14);
+      }
+      100% {
+        transform: translateY(-4px);
+        box-shadow: 0 10px 26px rgba(255, 107, 139, 0.24);
+      }
+    }
+
+    .home-author-line1 {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      font-size: 14px;
+      font-weight: 800;
+      color: #2f3542;
+    }
+
+    .home-author-paw {
+      font-size: 16px;
+      display: inline-block;
+      animation: authorPawWiggle 2.2s ease-in-out infinite alternate;
+    }
+
+    @keyframes authorPawWiggle {
+      0% { transform: scale(1) rotate(-8deg); }
+      100% { transform: scale(1.15) rotate(10deg); }
+    }
+
+    .home-author-label {
+      color: #747d8c;
+      font-weight: 600;
+      font-size: 13px;
+    }
+
+    .home-author-name {
+      color: #ff4757;
+      font-size: 15px;
+      font-weight: 900;
+      letter-spacing: 0.3px;
+      text-shadow: 0 1px 2px rgba(255, 71, 87, 0.15);
+    }
+
+    .home-author-line2 {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12px;
+      font-weight: 700;
+      color: #57606f;
+    }
+
+    .home-author-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .home-author-dot {
+      color: #ff6b8b;
+      font-weight: 900;
+      font-size: 10px;
+    }
+
+    /* Game Screen Bottom-Right Author Tag */
+    #game-author-badge {
+      position: absolute;
+      bottom: 12px;
+      right: 18px;
+      z-index: 15;
+      pointer-events: none;
+      user-select: none;
+      background: rgba(255, 255, 255, 0.88);
+      backdrop-filter: blur(8px);
+      padding: 6px 14px;
+      border-radius: 20px;
+      border: 1.5px solid rgba(255, 255, 255, 0.95);
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      font-weight: 700;
+      color: #2f3542;
+      animation: gameAuthorPulse 4s ease-in-out infinite alternate;
+    }
+
+    @keyframes gameAuthorPulse {
+      0% { transform: translateY(0); }
+      100% { transform: translateY(-2px); }
+    }
+
+    .game-author-paw {
+      font-size: 14px;
+      display: inline-block;
+      animation: authorPawWiggle 2.5s ease-in-out infinite alternate;
+    }
+
+    .game-author-label {
+      color: #747d8c;
+      font-weight: 600;
+      font-size: 11px;
+    }
+
+    .game-author-name {
+      color: #ff4757;
+      font-weight: 800;
+      font-size: 12px;
     }
 
     /* Cat Encyclopedia Gallery Grid (Optimized 4x3 Grid) */
@@ -1270,33 +1421,59 @@
       </div>
     </div>
 
+    <!-- Game Screen Bottom-Right Author Tag -->
+    <div id="game-author-badge" title="Tác giả: Thái Phùng (2026)">
+      <span class="game-author-paw">🐾</span>
+      <span class="game-author-label">Tác giả:</span>
+      <span class="game-author-name">Thái Phùng</span>
+    </div>
+
     <!-- Start Screen Overlay -->
     <div id="start-screen">
-      <div class="game-logo">🫧 Bắn Bong Bóng Mèo Cưng 🐱</div>
-      <div class="game-subtitle">
-        Trải nghiệm góc nhìn thứ nhất (FPS) siêu mượt! Bắn bong bóng đổi màu hoặc 7 sắc cầu vồng lên các chú mèo tinh nghịch đang leo trèo trên kệ, nóc tủ và cành cây. Khám phá và mở khoá các hình bọt độc đáo!
-      </div>
+      <!-- Animated Paw Tracks Canvas on Start Screen (2-3 cats walking around with max 4 paw prints each) -->
+      <canvas id="home-paws-canvas"></canvas>
 
-      <div class="mode-select-box">
-        <div class="mode-card" id="btn-mode-relax">
-          <span style="font-size: 36px;">🌈</span>
-          <h3>Chế Độ Thư Giãn</h3>
-          <p>Chơi vô tận không giới hạn thời gian, tự do ngắm nhìn mèo nô đùa và sưu tập trọn vẹn album!</p>
-          <button class="btn-primary" style="margin-top: 6px; padding: 8px 18px; font-size: 14px;">Bắt Đầu Chơi</button>
+      <div class="start-content-wrap">
+        <div class="game-logo">🫧 Bắn Bong Bóng Mèo Cưng 🐱</div>
+        <div class="game-subtitle">
+          Trải nghiệm góc nhìn thứ nhất (FPS) siêu mượt! Bắn bong bóng đổi màu hoặc 7 sắc cầu vồng lên các chú mèo tinh nghịch đang leo trèo trên kệ, nóc tủ và cành cây. Khám phá và mở khoá các hình bọt độc đáo!
         </div>
 
-        <div class="mode-card" id="btn-mode-challenge">
-          <span style="font-size: 36px;">⏱️</span>
-          <h3>Chế Độ Thử Thách</h3>
-          <p>Giới hạn 60 giây đua điểm cao! Bắn liên hoàn tạo combo nhân điểm và vượt kỷ lục của bạn!</p>
-          <button class="btn-secondary" style="margin-top: 6px; padding: 8px 18px; font-size: 14px;">Thử Thách Ngay</button>
-        </div>
-      </div>
+        <div class="mode-select-box">
+          <div class="mode-card" id="btn-mode-relax">
+            <span style="font-size: 36px;">🌈</span>
+            <h3>Chế Độ Thư Giãn</h3>
+            <p>Chơi vô tận không giới hạn thời gian, tự do ngắm nhìn mèo nô đùa và sưu tập trọn vẹn album!</p>
+            <button class="btn-primary" style="margin-top: 6px; padding: 8px 18px; font-size: 14px;">Bắt Đầu Chơi</button>
+          </div>
 
-      <div style="margin-top: 8px;">
-        <button class="btn-secondary" id="btn-start-gallery" style="background: #fff; color: #333; border: 2px solid #ddd;">
-          📖 Xem Bách Khoa Toàn Thư Mèo
-        </button>
+          <div class="mode-card" id="btn-mode-challenge">
+            <span style="font-size: 36px;">⏱️</span>
+            <h3>Chế Độ Thử Thách</h3>
+            <p>Giới hạn 60 giây đua điểm cao! Bắn liên hoàn tạo combo nhân điểm và vượt kỷ lục của bạn!</p>
+            <button class="btn-secondary" style="margin-top: 6px; padding: 8px 18px; font-size: 14px;">Thử Thách Ngay</button>
+          </div>
+        </div>
+
+        <div style="margin-top: 4px;">
+          <button class="btn-secondary" id="btn-start-gallery" style="background: #fff; color: #333; border: 2px solid #ddd;">
+            📖 Xem Bách Khoa Toàn Thư Mèo
+          </button>
+        </div>
+
+        <!-- Author Tag on Home Page (Middle Bottom) -->
+        <div class="home-author-badge" title="Tác giả: Thái Phùng (2026)">
+          <div class="home-author-line1">
+            <span class="home-author-paw">🐾</span>
+            <span class="home-author-label">Tác Giả:</span>
+            <span class="home-author-name">Thái Phùng</span>
+          </div>
+          <div class="home-author-line2">
+            <span class="home-author-tag">✨ Năm 2026</span>
+            <span class="home-author-dot">•</span>
+            <span class="home-author-tag">📍 Hồ Chí Minh, Việt Nam</span>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -1681,14 +1858,228 @@
       renderShapeSelector();
     };
 
+    // ==================== HOME SCREEN PAW PRINTS EFFECT ====================
+    // Displays up to 4 paw prints per cat, walking in different directions.
+    // When a new step is added, the oldest paw fades away smoothly.
+    const homePawsCanvas = document.getElementById('home-paws-canvas');
+    let homePawsCtx = homePawsCanvas ? homePawsCanvas.getContext('2d') : null;
+    let homePawRafId = null;
+    let lastPawTimestamp = performance.now();
+
+    function drawCutePaw(ctx, x, y, angle, size, color, opacity) {
+      if (opacity <= 0.01) return;
+      ctx.save();
+      ctx.translate(x, y);
+      ctx.rotate(angle);
+      ctx.globalAlpha = Math.max(0, Math.min(1, opacity));
+      ctx.fillStyle = color;
+
+      const r = size;
+
+      // 1. Main Palm Pad (Bầu bĩnh kết hợp đệm chính + 2 nốt tròn hai bên)
+      ctx.beginPath();
+      ctx.ellipse(0, r * 0.12, r * 0.42, r * 0.35, 0, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.beginPath();
+      ctx.arc(-r * 0.22, r * 0.26, r * 0.22, 0, Math.PI * 2);
+      ctx.arc(r * 0.22, r * 0.26, r * 0.22, 0, Math.PI * 2);
+      ctx.fill();
+
+      // 2. Bốn ngón chân nhỏ xíu phía trước (Toe Pads)
+      const toes = [
+        { x: -r * 0.38, y: -r * 0.28, rx: r * 0.13, ry: r * 0.18, rot: -0.35 },
+        { x: -r * 0.13, y: -r * 0.48, rx: r * 0.14, ry: r * 0.20, rot: -0.12 },
+        { x: r * 0.13, y: -r * 0.48, rx: r * 0.14, ry: r * 0.20, rot: 0.12 },
+        { x: r * 0.38, y: -r * 0.28, rx: r * 0.13, ry: r * 0.18, rot: 0.35 }
+      ];
+
+      for (const t of toes) {
+        ctx.beginPath();
+        ctx.ellipse(t.x, t.y, t.rx, t.ry, t.rot, 0, Math.PI * 2);
+        ctx.fill();
+      }
+
+      ctx.restore();
+    }
+
+    class VirtualCatWalker {
+      constructor(color, initialAngle, startRatioX, startRatioY) {
+        this.color = color;
+        this.x = 0;
+        this.y = 0;
+        this.startRatioX = startRatioX;
+        this.startRatioY = startRatioY;
+        this.angle = initialAngle;
+        this.targetAngle = initialAngle;
+        this.speed = 68 + Math.random() * 18; // 68 - 86 px/s
+        this.stepDist = 30 + Math.random() * 6; // Khoảng cách giữa 2 bước chân
+        this.distTraveled = 0;
+        this.isLeftFoot = false;
+        this.turnTimer = Math.random() * 1.8 + 0.8;
+        this.pawPrints = [];
+        this.initialized = false;
+      }
+
+      initPos(w, h) {
+        this.x = w * this.startRatioX;
+        this.y = h * this.startRatioY;
+        this.initialized = true;
+      }
+
+      update(dt, w, h) {
+        if (!this.initialized || (this.x === 0 && this.y === 0)) {
+          this.initPos(w, h);
+        }
+
+        // 1. Đổi hướng uốn lượn tự nhiên
+        this.turnTimer -= dt;
+        if (this.turnTimer <= 0) {
+          this.turnTimer = Math.random() * 1.8 + 1.0;
+          this.targetAngle += (Math.random() - 0.5) * 1.4;
+        }
+
+        // 2. Tránh chạm sát mép biên màn hình
+        const margin = 60;
+        if (this.x < margin) this.targetAngle = 0;
+        else if (this.x > w - margin) this.targetAngle = Math.PI;
+        if (this.y < margin) this.targetAngle = Math.PI * 0.5;
+        else if (this.y > h - margin) this.targetAngle = -Math.PI * 0.5;
+
+        // Xoay góc êm ái
+        let diff = this.targetAngle - this.angle;
+        while (diff > Math.PI) diff -= Math.PI * 2;
+        while (diff < -Math.PI) diff += Math.PI * 2;
+        this.angle += diff * Math.min(1, dt * 3.8);
+
+        // Di chuyển
+        const move = this.speed * dt;
+        this.x += Math.cos(this.angle) * move;
+        this.y += Math.sin(this.angle) * move;
+        this.distTraveled += move;
+
+        // 3. In dấu chân khi đi hết 1 bước
+        if (this.distTraveled >= this.stepDist) {
+          this.distTraveled = 0;
+          this.isLeftFoot = !this.isLeftFoot;
+
+          // Vị trí lệch trái/phải so với trục đi
+          const side = (this.isLeftFoot ? -1 : 1) * 9;
+          const perp = this.angle + Math.PI / 2;
+          const px = this.x + Math.cos(perp) * side;
+          const py = this.y + Math.sin(perp) * side;
+
+          this.pawPrints.push({
+            x: px,
+            y: py,
+            angle: this.angle,
+            opacity: 0.72,
+            isExpiring: false,
+            size: 14
+          });
+
+          // QUY TẮC: Hiển thị tối đa 4 dấu chân, đi thêm 1 dấu thì mờ đi dấu sau cùng
+          if (this.pawPrints.length > 4) {
+            this.pawPrints[0].isExpiring = true;
+          }
+        }
+
+        // 4. Cập nhật độ mờ dấu chân
+        for (let i = this.pawPrints.length - 1; i >= 0; i--) {
+          const p = this.pawPrints[i];
+          if (p.isExpiring) {
+            p.opacity -= dt * 1.8;
+            if (p.opacity <= 0) {
+              this.pawPrints.splice(i, 1);
+            }
+          } else {
+            const rank = this.pawPrints.length - 1 - i;
+            const targetAlpha = Math.max(0.20, 0.72 - rank * 0.16);
+            p.opacity += (targetAlpha - p.opacity) * dt * 4;
+          }
+        }
+      }
+
+      render(ctx) {
+        for (const p of this.pawPrints) {
+          drawCutePaw(ctx, p.x, p.y, p.angle, p.size, this.color, p.opacity);
+        }
+      }
+    }
+
+    // Khởi tạo 3 chú mèo với 3 hướng và 3 sắc màu pastel khác nhau
+    const homeCats = [
+      new VirtualCatWalker('rgba(255, 107, 129, 0.65)', -Math.PI * 0.25, 0.22, 0.75), // Mèo hồng cam đi chéo lên
+      new VirtualCatWalker('rgba(255, 159, 67, 0.65)', Math.PI * 0.75, 0.78, 0.30),  // Mèo cam vàng đi chéo xuống
+      new VirtualCatWalker('rgba(112, 111, 211, 0.65)', Math.PI * 0.15, 0.45, 0.82)   // Mèo tím pastel dạo quanh giữa
+    ];
+
+    function resizeHomePaws() {
+      if (!homePawsCanvas || !startScreen) return;
+      const rect = startScreen.getBoundingClientRect();
+      const w = Math.round(rect.width) || 1280;
+      const h = Math.round(rect.height) || 720;
+      if (homePawsCanvas.width !== w || homePawsCanvas.height !== h) {
+        homePawsCanvas.width = w;
+        homePawsCanvas.height = h;
+      }
+    }
+
+    function loopHomePaws(currentTime) {
+      if (!homePawsCtx || startScreen.style.display === 'none') {
+        homePawRafId = null;
+        return;
+      }
+
+      const dt = Math.min((currentTime - lastPawTimestamp) / 1000, 0.05);
+      lastPawTimestamp = currentTime;
+
+      resizeHomePaws();
+
+      const w = homePawsCanvas.width;
+      const h = homePawsCanvas.height;
+
+      homePawsCtx.clearRect(0, 0, w, h);
+
+      for (const cat of homeCats) {
+        cat.update(dt, w, h);
+        cat.render(homePawsCtx);
+      }
+
+      homePawRafId = requestAnimationFrame(loopHomePaws);
+    }
+
+    function startHomePawTracks() {
+      if (homePawRafId) return;
+      resizeHomePaws();
+      lastPawTimestamp = performance.now();
+      homePawRafId = requestAnimationFrame(loopHomePaws);
+    }
+
+    function stopHomePawTracks() {
+      if (homePawRafId) {
+        cancelAnimationFrame(homePawRafId);
+        homePawRafId = null;
+      }
+      if (homePawsCtx && homePawsCanvas) {
+        homePawsCtx.clearRect(0, 0, homePawsCanvas.width, homePawsCanvas.height);
+      }
+    }
+
+    // Bắt đầu hiệu ứng dấu chân mèo ngay khi tải trang
+    startHomePawTracks();
+    window.addEventListener('resize', resizeHomePaws);
+
     // Mode selection
     btnModeRelax.addEventListener('click', () => {
+      stopHomePawTracks();
       startScreen.style.display = 'none';
       hudTimerContainer.style.display = 'none';
       game.start(GAME_MODES.RELAX);
     });
 
     btnModeChallenge.addEventListener('click', () => {
+      stopHomePawTracks();
       startScreen.style.display = 'none';
       hudTimerContainer.style.display = 'flex';
       game.start(GAME_MODES.CHALLENGE);
@@ -2224,6 +2615,7 @@
       gameOverModal.classList.remove('active');
       startScreen.style.display = 'flex';
       game.state = GAME_STATES.MENU;
+      startHomePawTracks();
     });
 
     // ==================== SHOP & CUSTOMIZATION LOGIC ====================

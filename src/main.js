@@ -1,5 +1,5 @@
 /**
- * Cute Cat Bubble Shooter - Main Game Orchestrator
+ * Thai Phung: Cute Cat Bubble Shooter - Main Game Orchestrator
  * Integrates First-Person Blaster, Multi-Tier Depth Aiming, Flying Birds,
  * Cat Leaping Physics, and Real-time Collision Detection.
  */
@@ -37,7 +37,7 @@ export class Game {
     this.canvas.width = this.width;
     this.canvas.height = this.height;
 
-    // Core Systems
+    // Thai Phung: Core Systems
     this.cannon = new Cannon(this.width, this.height);
     this.spawner = new CatSpawner();
     this.bubblePool = new BubblePool(70);
@@ -68,7 +68,7 @@ export class Game {
     this.lastTime = performance.now();
     this.isRunning = false;
 
-    // Pointer coordinates & Cached Rect (Zero Layout Thrashing on mousemove)
+    // TP: Pointer coordinates & Cached Rect (Zero Layout Thrashing on mousemove)
     this.pointerX = this.width / 2;
     this.pointerY = this.height / 2;
     this.isFiring = false;

@@ -24,6 +24,7 @@ export class SafeStorage {
     }
   }
 
+  // TP: Get Default Save Data
   getDefaultSaveData() {
     return {
       version: '1.0',
@@ -40,6 +41,7 @@ export class SafeStorage {
     };
   }
 
+  // T-P: Load Save Data
   load() {
     try {
       let raw = null;

@@ -1,5 +1,5 @@
 /**
- * Cute Cat Bubble Shooter - Shop Catalog
+ * Thai Phung: Cute Cat Bubble Shooter - Shop Catalog
  * Definitive catalog of Gun Skins, Muzzle Effects, and Cat Modular Accessories.
  */
 
@@ -16,6 +16,7 @@ export const CAT_SLOTS = {
   AURA: 'aura'
 };
 
+// Thai-Phung: Catalog of shop items
 export const SHOP_CATALOG = [
   // --- 1. GUN SKINS (1 equipped at a time) ---
   {
