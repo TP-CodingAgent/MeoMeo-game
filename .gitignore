@@ -1,0 +1,45 @@
+# ---- TP AIDLC harness / agent assets ----
+.agents/
+.tp-aidlc/
+.tp-aidlc-session/
+aidlc-docs/
+
+# ---- Dependency folders ----
+node_modules/
+bower_components/
+jspm_packages/
+vendor/
+.bundle/
+.venv/
+venv/
+env/
+__pycache__/
+*.egg-info/
+
+# ---- Build / cache output ----
+dist/
+build/
+out/
+.cache/
+.parcel-cache/
+coverage/
+*.tsbuildinfo
+
+# ---- Logs & temp ----
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+.tmp/
+tmp/
+temp/
+
+# ---- Editor / OS ----
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+desktop.ini

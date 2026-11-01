@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cute Cat Bubble Shooter - Test Runner Trực Quan</title>
+  <style>
+    :root {
+      --bg: #f8fafc;
+      --card: #ffffff;
+      --text: #1e293b;
+      --text-muted: #64748b;
+      --success: #10b981;
+      --fail: #ef4444;
+      --primary: #3b82f6;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: var(--bg);
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      color: var(--text);
+      padding: 30px 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 900px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .header-card {
+      background: var(--card);
+      border-radius: 16px;
+      padding: 24px;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.06);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border: 1px solid #e2e8f0;
+    }
+
+    .header-title h1 {
+      font-size: 24px;
+      color: #0f172a;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .header-title p {
+      font-size: 14px;
+      color: var(--text-muted);
+      margin-top: 4px;
+    }
+
+    .stats-bar {
+      display: flex;
+      gap: 16px;
+    }
+
+    .stat-chip {
+      background: #f1f5f9;
+      padding: 10px 18px;
+      border-radius: 12px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-width: 90px;
+    }
+
+    .stat-val {
+      font-size: 20px;
+      font-weight: 800;
+    }
+
+    .stat-lbl {
+      font-size: 12px;
+      color: var(--text-muted);
+      font-weight: 600;
+    }
+
+    .progress-bar-container {
+      width: 100%;
+      height: 10px;
+      background: #e2e8f0;
+      border-radius: 5px;
+      overflow: hidden;
+    }
+
+    .progress-bar-fill {
+      height: 100%;
+      width: 0%;
+      background: var(--success);
+      transition: width 0.3s ease;
+    }
+
+    .suite-card {
+      background: var(--card);
+      border-radius: 14px;
+      padding: 20px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.04);
+      border: 1px solid #e2e8f0;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .suite-title {
+      font-size: 17px;
+      font-weight: 700;
+      color: #334155;
+      padding-bottom: 8px;
+      border-bottom: 2px solid #f1f5f9;
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .test-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      font-size: 14px;
+      padding: 8px 12px;
+      border-radius: 8px;
+      background: #f8fafc;
+      transition: background 0.15s ease;
+    }
+
+    .test-item:hover {
+      background: #f1f5f9;
+    }
+
+    .test-badge {
+      font-size: 11px;
+      font-weight: 800;
+      padding: 3px 8px;
+      border-radius: 6px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      flex-shrink: 0;
+    }
+
+    .badge-pass {
+      background: #d1fae5;
+      color: #065f46;
+    }
+
+    .badge-fail {
+      background: #fee2e2;
+      color: #991b1b;
+    }
+
+    .test-desc {
+      flex: 1;
+      line-height: 1.5;
+    }
+
+    .test-error {
+      color: var(--fail);
+      font-size: 12px;
+      margin-top: 4px;
+      font-family: monospace;
+      background: #fff1f2;
+      padding: 6px 10px;
+      border-radius: 6px;
+    }
+
+    .actions {
+      display: flex;
+      gap: 12px;
+      margin-top: 10px;
+    }
+
+    .btn {
+      background: var(--primary);
+      color: #fff;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 10px;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .btn-game {
+      background: #ec4899;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <div class="header-card">
+      <div class="header-title">
+        <h1>🐾 Bảng Kiểm Thử Đơn Vị Tự Động</h1>
+        <p>Kiểm thử toàn diện Logic Game, Va chạm, Nạp nước 2s, Xác suất mèo, và Album sưu tập</p>
+      </div>
+
+      <div class="stats-bar">
+        <div class="stat-chip">
+          <span class="stat-val" id="stat-total" style="color: #3b82f6;">0</span>
+          <span class="stat-lbl">TỔNG TEST</span>
+        </div>
+        <div class="stat-chip">
+          <span class="stat-val" id="stat-passed" style="color: #10b981;">0</span>
+          <span class="stat-lbl">ĐẠT (PASS)</span>
+        </div>
+        <div class="stat-chip">
+          <span class="stat-val" id="stat-failed" style="color: #ef4444;">0</span>
+          <span class="stat-lbl">LỖI (FAIL)</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="progress-bar-container">
+      <div class="progress-bar-fill" id="progress-fill"></div>
+    </div>
+
+    <div class="actions">
+      <button class="btn" id="btn-rerun">🔄 Chạy Lại Kiểm Thử</button>
+      <a class="btn btn-game" href="index.html">🎮 Mở Game Chơi Thử</a>
+    </div>
+
+    <div id="suites-container"></div>
+  </div>
+
+  <script type="module">
+    import { runAllTests } from './tests/unit-tests.js';
+
+    class DomTestReporter {
+      constructor() {
+        this.container = document.getElementById('suites-container');
+        this.totalEl = document.getElementById('stat-total');
+        this.passedEl = document.getElementById('stat-passed');
+        this.failedEl = document.getElementById('stat-failed');
+        this.progressEl = document.getElementById('progress-fill');
+
+        this.currentSuiteEl = null;
+        this.totalTests = 0;
+        this.passedTests = 0;
+        this.failedTests = 0;
+      }
+
+      reset() {
+        this.container.innerHTML = '';
+        this.totalTests = 0;
+        this.passedTests = 0;
+        this.failedTests = 0;
+        this.updateStats();
+      }
+
+      suite(name) {
+        const card = document.createElement('div');
+        card.className = 'suite-card';
+        card.innerHTML = `<div class="suite-title"><span>${name}</span></div>`;
+        this.container.appendChild(card);
+        this.currentSuiteEl = card;
+      }
+
+      test(description, fn) {
+        this.totalTests++;
+        let passed = false;
+        let errorMessage = null;
+
+        try {
+          fn();
+          passed = true;
+          this.passedTests++;
+        } catch (err) {
+          passed = false;
+          errorMessage = err.message || String(err);
+          this.failedTests++;
+        }
+
+        const item = document.createElement('div');
+        item.className = 'test-item';
+        item.innerHTML = `
+          <span class="test-badge ${passed ? 'badge-pass' : 'badge-fail'}">${passed ? 'PASS' : 'FAIL'}</span>
+          <div class="test-desc">
+            <div>${description}</div>
+            ${errorMessage ? `<div class="test-error">${errorMessage}</div>` : ''}
+          </div>
+        `;
+
+        if (this.currentSuiteEl) {
+          this.currentSuiteEl.appendChild(item);
+        }
+        this.updateStats();
+      }
+
+      updateStats() {
+        this.totalEl.textContent = this.totalTests;
+        this.passedEl.textContent = this.passedTests;
+        this.failedEl.textContent = this.failedTests;
+
+        const pct = this.totalTests > 0 ? (this.passedTests / this.totalTests) * 100 : 0;
+        this.progressEl.style.width = `${pct}%`;
+        this.progressEl.style.background = this.failedTests > 0 ? '#f59e0b' : '#10b981';
+      }
+
+      assertEqual(actual, expected, msg) {
+        if (actual !== expected) {
+          throw new Error(`${msg || 'Assertion failed'}: expected [${expected}], received [${actual}]`);
+        }
+      }
+
+      assertTrue(val, msg) {
+        if (!val) {
+          throw new Error(`${msg || 'Assertion failed'}: expected true, received [${val}]`);
+        }
+      }
+
+      assertFalse(val, msg) {
+        if (val) {
+          throw new Error(`${msg || 'Assertion failed'}: expected false, received [${val}]`);
+        }
+      }
+    }
+
+    const reporter = new DomTestReporter();
+
+    async function execute() {
+      reporter.reset();
+      await runAllTests(reporter);
+    }
+
+    document.getElementById('btn-rerun').addEventListener('click', execute);
+    execute();
+  </script>
+</body>
+</html>

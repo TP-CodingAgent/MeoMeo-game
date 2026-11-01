@@ -1,0 +1,76 @@
+{
+  "$comment": "TP AI-DLC session configuration. Created/updated at Inception (Workspace Detection + Toolchain Probe). All later stages READ this file - never rely on chat memory. Fields marked [auto] are filled by the workflow; fields marked [user] require user confirmation.",
+  "version": "1.0",
+  "project": {
+    "name": "cute-cat-water-shooter",
+    "type": "greenfield"
+  },
+  "toolchain": {
+    "tracker": "none",
+    "repo": "none",
+    "ci": "none",
+    "tracker_url": null,
+    "status_mapping": {
+      "backlog": null,
+      "in_development": null,
+      "in_review": null,
+      "done": null
+    },
+    "probe": {
+      "detected": [],
+      "confirmed_at": "2026-10-31T17:06:30+07:00"
+    }
+  },
+  "cloud": {
+    "provider": "none",
+    "detection": {
+      "method": "source-scan",
+      "markers_found": [],
+      "confirmed_at": "2026-10-31T17:06:30+07:00"
+    }
+  },
+  "quality": {
+    "coverage_threshold": 80
+  },
+  "knowledge_base": {
+    "available": false,
+    "probed_at": "2026-10-31T17:06:30+07:00"
+  },
+  "codebase_topology": {
+    "model": "single-repo",
+    "monorepo_type": null,
+    "multi_repo_registry": []
+  },
+  "code_intelligence": {
+    "capabilities": {
+      "system_knowledge": {
+        "available": false,
+        "tool": "graphify",
+        "tool_version": null,
+        "indexed_at": null
+      },
+      "structural_graph": {
+        "available": false,
+        "tool": "codebase-memory-mcp",
+        "tool_version": null,
+        "indexed_at": null
+      },
+      "semantic_symbols": {
+        "available": false,
+        "tool": "serena",
+        "tool_version": null
+      },
+      "fast_text_search": {
+        "available": false,
+        "tool": "ripgrep",
+        "bin_path": "rg",
+        "tool_version": null
+      }
+    },
+    "probed_at": "2026-10-31T17:06:30+07:00"
+  },
+  "language": {
+    "docs": "en",
+    "chat_summary": "vi"
+  }
+}

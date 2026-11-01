@@ -1,0 +1,1879 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Bắn Bong Bóng Mèo Cưng - Cute Cat Bubble Shooter</title>
+  <style>
+    :root {
+      --primary: #ff6b8b;
+      --primary-hover: #ff4757;
+      --secondary: #48dbfb;
+      --accent: #ffd166;
+      --success: #1dd1a1;
+      --bg-gradient: linear-gradient(135deg, #fbc2eb 0%, #a6c1ee 100%);
+      --card-bg: rgba(255, 255, 255, 0.96);
+      --font-family: 'Segoe UI', system-ui, -apple-system, Roboto, sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
+    body {
+      background: var(--bg-gradient);
+      font-family: var(--font-family);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      color: #2f3542;
+    }
+
+    #game-container {
+      position: relative;
+      /* Mở rộng kích thước game gần sát kích thước cửa sổ browser (chừa 28px viền thanh lịch, không full 100%) */
+      width: min(calc(100vw - 28px), calc((100vh - 28px) * 16 / 9));
+      height: min(calc(100vh - 28px), calc((100vw - 28px) * 9 / 16));
+      max-width: 1920px;
+      max-height: 1080px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.22);
+      border-radius: 20px;
+      overflow: hidden;
+      background: #fdfbf7;
+    }
+
+    canvas {
+      display: block;
+      touch-action: none;
+      cursor: none;
+    }
+
+    /* Top HUD */
+    #hud-top {
+      position: absolute;
+      top: 14px;
+      left: 18px;
+      right: 18px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      pointer-events: none;
+      z-index: 10;
+    }
+
+    .hud-pill {
+      background: rgba(255, 255, 255, 0.92);
+      backdrop-filter: blur(8px);
+      padding: 8px 16px;
+      border-radius: 30px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+      border: 2px solid rgba(255, 255, 255, 0.8);
+      font-weight: 700;
+      font-size: 15px;
+      pointer-events: auto;
+    }
+
+    .hud-btn {
+      background: #ffffff;
+      border: none;
+      outline: none;
+      padding: 8px 14px;
+      border-radius: 20px;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      box-shadow: 0 3px 8px rgba(0, 0, 0, 0.1);
+      transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      pointer-events: auto;
+      color: #333;
+    }
+
+    .hud-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 14px rgba(0, 0, 0, 0.15);
+    }
+
+    .hud-btn:active {
+      transform: translateY(1px);
+    }
+
+    /* Bottom HUD */
+    #hud-bottom {
+      position: absolute;
+      bottom: 12px;
+      left: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      pointer-events: auto;
+      z-index: 10;
+    }
+
+    .tank-panel {
+      background: rgba(255, 255, 255, 0.92);
+      backdrop-filter: blur(8px);
+      padding: 8px 16px;
+      border-radius: 20px;
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.1);
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      width: 250px;
+      border: 2px solid #54a0ff;
+    }
+
+    .tank-header {
+      display: flex;
+      justify-content: space-between;
+      font-size: 13px;
+      font-weight: 800;
+      color: #2e86de;
+    }
+
+    .tank-bar-container {
+      width: 100%;
+      height: 14px;
+      background: #e4e7eb;
+      border-radius: 10px;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .tank-bar-fill {
+      height: 100%;
+      width: 100%;
+      background: linear-gradient(90deg, #48dbfb, #2e86de);
+      border-radius: 10px;
+      transition: width 0.1s ease;
+    }
+
+    .tank-cooldown-text {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 10px;
+      font-weight: 800;
+      color: #ee5253;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      display: none;
+    }
+
+    .controls-row {
+      display: flex;
+      gap: 8px;
+    }
+
+    .palette-panel {
+      background: rgba(255, 255, 255, 0.94);
+      padding: 6px 12px;
+      border-radius: 20px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+    }
+
+    .color-chip {
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      cursor: pointer;
+      border: 2px solid #fff;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+      transition: transform 0.15s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 13px;
+    }
+
+    .color-chip:hover {
+      transform: scale(1.25);
+    }
+
+    .color-chip.active {
+      transform: scale(1.3);
+      border-color: #2f3542;
+    }
+
+    .chip-rainbow {
+      background: linear-gradient(135deg, #ff4757, #ffa502, #2ed573, #1e90ff, #9b59b6);
+    }
+
+    .shape-panel {
+      background: rgba(255, 255, 255, 0.94);
+      padding: 6px 12px;
+      border-radius: 20px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+    }
+
+    .shape-chip {
+      width: 28px;
+      height: 28px;
+      border-radius: 8px;
+      background: #f1f2f6;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 15px;
+      cursor: pointer;
+      border: 2px solid transparent;
+      transition: all 0.15s ease;
+    }
+
+    .shape-chip:hover {
+      transform: scale(1.2);
+    }
+
+    .shape-chip.active {
+      background: #ffeaa7;
+      border-color: #ff9f43;
+      transform: scale(1.25);
+    }
+
+    .shape-chip.locked {
+      opacity: 0.35;
+      cursor: not-allowed;
+      filter: grayscale(1);
+    }
+
+    /* Modal Dialogs */
+    .modal-overlay {
+      position: absolute;
+      inset: 0;
+      background: rgba(47, 53, 66, 0.65);
+      backdrop-filter: blur(6px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 100;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.25s ease;
+      padding: 16px;
+      box-sizing: border-box;
+      overflow-y: auto;
+    }
+
+    .modal-overlay.active {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .modal-card {
+      background: var(--card-bg);
+      border-radius: 24px;
+      padding: 22px 24px;
+      width: 94%;
+      max-width: 600px;
+      max-height: min(92vh, calc(100% - 24px));
+      overflow-y: auto;
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.25);
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      text-align: center;
+      position: relative;
+      margin: auto;
+      box-sizing: border-box;
+      animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    @keyframes popIn {
+      from { transform: scale(0.85); opacity: 0; }
+      to { transform: scale(1); opacity: 1; }
+    }
+
+    /* Top-right Icon Close Button */
+    .modal-close-icon-btn {
+      position: absolute;
+      top: 0px;
+      right: 6px;
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: #f1f2f6;
+      border: none;
+      font-size: 18px;
+      font-weight: 800;
+      color: #57606f;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      z-index: 25;
+    }
+
+    .modal-close-icon-btn:hover {
+      background: #ff4757;
+      color: #ffffff;
+      transform: scale(1.12);
+    }
+
+    .modal-title {
+      font-size: 24px;
+      font-weight: 800;
+      color: #ff4757;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      padding-right: 32px;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #ff6b8b, #ff4757);
+      color: #fff;
+      border: none;
+      padding: 10px 24px;
+      border-radius: 25px;
+      font-size: 15px;
+      font-weight: 800;
+      cursor: pointer;
+      box-shadow: 0 4px 15px rgba(255, 71, 87, 0.35);
+      transition: all 0.2s ease;
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(255, 71, 87, 0.45);
+    }
+
+    .btn-secondary {
+      background: #70a1ff;
+      color: #fff;
+      border: none;
+      padding: 10px 24px;
+      border-radius: 25px;
+      font-size: 15px;
+      font-weight: 800;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .btn-secondary:hover {
+      background: #1e90ff;
+      transform: translateY(-2px);
+    }
+
+    /* Start Screen */
+    #start-screen {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, rgba(255, 182, 193, 0.95), rgba(166, 193, 238, 0.95));
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 18px;
+      z-index: 50;
+    }
+
+    .game-logo {
+      font-size: 38px;
+      font-weight: 900;
+      color: #ff4757;
+      text-shadow: 2px 4px 0 #fff, 4px 6px 10px rgba(0,0,0,0.1);
+      letter-spacing: 1px;
+    }
+
+    .game-subtitle {
+      font-size: 15px;
+      font-weight: 600;
+      color: #57606f;
+      max-width: 520px;
+      text-align: center;
+      line-height: 1.6;
+    }
+
+    .mode-select-box {
+      display: flex;
+      gap: 16px;
+      margin-top: 6px;
+    }
+
+    .mode-card {
+      background: #fff;
+      padding: 18px 22px;
+      border-radius: 18px;
+      width: 220px;
+      cursor: pointer;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.08);
+      border: 3px solid transparent;
+      transition: all 0.2s ease;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .mode-card:hover {
+      transform: translateY(-4px);
+      border-color: #ff6b8b;
+      box-shadow: 0 12px 25px rgba(255, 107, 139, 0.2);
+    }
+
+    .mode-card h3 {
+      font-size: 17px;
+      color: #2f3542;
+    }
+
+    .mode-card p {
+      font-size: 12px;
+      color: #747d8c;
+      text-align: center;
+    }
+
+    /* Cat Encyclopedia Gallery Grid (Optimized 4x3 Grid) */
+    #gallery-modal .modal-card {
+      max-width: 860px;
+      max-height: 92vh;
+      padding: 16px 20px;
+      gap: 10px;
+    }
+
+    .cat-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+      margin-top: 6px;
+      padding: 4px;
+    }
+
+    .cat-card {
+      background: #ffffff;
+      border-radius: 14px;
+      padding: 8px 4px 18px 4px;
+      position: relative;
+      cursor: pointer;
+      box-shadow: 0 3px 10px rgba(0, 0, 0, 0.06);
+      border: 2px solid #e4e7eb;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      transition: all 0.2s ease;
+      overflow: hidden;
+    }
+
+    .cat-card:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
+      border-color: #ff9ff3;
+    }
+
+    .cat-card.locked {
+      background: #dfe4ea;
+      opacity: 0.65;
+      cursor: not-allowed;
+      filter: grayscale(1);
+    }
+
+    .cat-card-avatar {
+      width: 58px;
+      height: 58px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 4px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .cat-avatar-canvas {
+      width: 58px;
+      height: 58px;
+      display: block;
+    }
+
+    .cat-card-name {
+      font-size: 11px;
+      font-weight: 800;
+      color: #2f3542;
+      margin-bottom: 2px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 100%;
+    }
+
+    .cat-card-stars {
+      color: #ffa502;
+      font-size: 10px;
+      letter-spacing: 0.5px;
+    }
+
+    .cat-card-reward {
+      font-size: 9px;
+      color: #0984e3;
+      font-weight: 700;
+      margin-top: 2px;
+    }
+
+    .cat-card-ribbon {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: linear-gradient(90deg, #ff9ff3, #feca57);
+      color: #2f3542;
+      font-size: 9px;
+      font-weight: 800;
+      text-transform: uppercase;
+      padding: 1.5px 0;
+      letter-spacing: 0.5px;
+      box-shadow: 0 -2px 6px rgba(0,0,0,0.1);
+    }
+
+    /* Cat Detail Dialog */
+    .cat-detail-header {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      text-align: left;
+    }
+
+    .cat-detail-avatar-box {
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      background: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+      border: 3px solid #ff9ff3;
+      flex-shrink: 0;
+      overflow: hidden;
+    }
+
+    .cat-detail-meta h3 {
+      font-size: 20px;
+      color: #2f3542;
+    }
+
+    .cat-detail-meta p {
+      font-size: 13px;
+      color: #747d8c;
+      font-weight: 600;
+    }
+
+    .cat-detail-body {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      text-align: left;
+      font-size: 13px;
+      line-height: 1.5;
+      background: #f8f9fa;
+      padding: 14px;
+      border-radius: 14px;
+      border: 1px solid #e9ecef;
+    }
+
+    .cat-detail-row {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+
+    .cat-detail-label {
+      font-weight: 700;
+      color: #ff4757;
+      font-size: 12px;
+    }
+
+    /* Settings Modal Styles */
+    #settings-modal .modal-card {
+      max-width: 580px;
+      width: 95%;
+      padding: 16px 20px;
+      text-align: left;
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+      max-height: min(92vh, calc(100% - 24px));
+    }
+
+    .settings-header-sticky {
+      position: relative;
+      padding-bottom: 6px;
+      margin-bottom: 8px;
+      border-bottom: 1.5px solid #f1f2f6;
+    }
+
+    .settings-scroll-body {
+      overflow-y: auto;
+      max-height: calc(100% - 110px);
+      padding-right: 6px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .settings-scroll-body::-webkit-scrollbar {
+      width: 6px;
+    }
+    .settings-scroll-body::-webkit-scrollbar-thumb {
+      background: #ced6e0;
+      border-radius: 4px;
+    }
+
+    .settings-group {
+      background: #f8f9fa;
+      border: 1px solid #e9ecef;
+      border-radius: 12px;
+      padding: 9px 12px;
+      margin-bottom: 0;
+    }
+
+    .settings-label-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 3px;
+    }
+
+    .settings-label {
+      font-weight: 800;
+      color: #2f3542;
+      font-size: 13px;
+    }
+
+    .settings-val-badge {
+      background: #ff4757;
+      color: #ffffff;
+      border-radius: 12px;
+      padding: 2px 10px;
+      font-size: 12px;
+      font-weight: 700;
+      box-shadow: 0 2px 6px rgba(255, 71, 87, 0.25);
+    }
+
+    .settings-desc {
+      font-size: 11px;
+      color: #747d8c;
+      margin: 2px 0 6px 0;
+      line-height: 1.35;
+    }
+
+    .settings-slider-row {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+    }
+
+    .settings-slider {
+      flex: 1;
+      accent-color: #ff4757;
+      cursor: pointer;
+      height: 6px;
+    }
+
+    .settings-num-input {
+      width: 58px;
+      padding: 4px 6px;
+      border-radius: 8px;
+      border: 1.5px solid #ced6e0;
+      font-size: 13px;
+      font-weight: 700;
+      text-align: center;
+      color: #2f3542;
+      background: #fff;
+    }
+
+    .stage-select-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 6px;
+      margin-top: 4px;
+    }
+
+    .stage-select-btn {
+      padding: 6px 4px;
+      border-radius: 8px;
+      border: 1.5px solid #dfe4ea;
+      background: #ffffff;
+      cursor: pointer;
+      font-size: 10px;
+      font-weight: 700;
+      color: #57606f;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 2px;
+      transition: all 0.2s ease;
+      text-align: center;
+    }
+
+    .stage-select-btn:hover {
+      border-color: #ff6b81;
+      transform: translateY(-2px);
+      box-shadow: 0 3px 8px rgba(0, 0, 0, 0.08);
+    }
+
+    .stage-select-btn.active {
+      border-color: #ff4757;
+      background: #fff0f3;
+      color: #ff4757;
+      box-shadow: 0 3px 10px rgba(255, 71, 87, 0.2);
+    }
+
+    .settings-actions-row {
+      display: flex;
+      gap: 10px;
+      margin-top: 10px;
+      padding-top: 10px;
+      border-top: 1.5px solid #f1f2f6;
+      background: var(--card-bg);
+      position: sticky;
+      bottom: 0;
+      z-index: 10;
+    }
+
+    /* Stage Dropdown */
+    .stage-dropdown-container {
+      position: relative;
+      display: inline-block;
+      pointer-events: auto !important;
+      cursor: default;
+    }
+
+    .stage-dropdown-container.open {
+      z-index: 1000;
+    }
+
+    .stage-dropdown-trigger {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      cursor: pointer !important;
+      pointer-events: auto !important;
+    }
+
+    .dropdown-chevron {
+      font-size: 11px;
+      color: #747d8c;
+      transition: transform 0.2s ease;
+      display: inline-block;
+    }
+
+    .stage-dropdown-container.open .dropdown-chevron {
+      transform: rotate(180deg);
+    }
+
+    .stage-dropdown-menu {
+      position: absolute;
+      top: calc(100% + 6px);
+      left: 0;
+      min-width: 220px;
+      background: #ffffff;
+      border-radius: 16px;
+      box-shadow: 0 12px 36px rgba(0, 0, 0, 0.22);
+      border: 1.5px solid #dfe4ea;
+      padding: 6px;
+      display: none;
+      flex-direction: column;
+      gap: 3px;
+      z-index: 1000;
+      animation: popIn 0.2s ease;
+      pointer-events: auto !important;
+      cursor: default;
+    }
+
+    .stage-dropdown-container.open .stage-dropdown-menu {
+      display: flex;
+    }
+
+    .stage-dropdown-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 9px 12px;
+      border-radius: 10px;
+      background: transparent;
+      border: none;
+      font-size: 13px;
+      font-weight: 700;
+      color: #2f3542;
+      cursor: pointer !important;
+      text-align: left;
+      transition: all 0.15s ease;
+      width: 100%;
+      pointer-events: auto !important;
+    }
+
+    .stage-dropdown-item:hover {
+      background: #fff0f3;
+      color: #ff4757;
+      transform: translateX(4px);
+    }
+
+    .stage-dropdown-item.active {
+      background: linear-gradient(135deg, #ff6b8b, #ff4757);
+      color: #ffffff;
+      box-shadow: 0 2px 8px rgba(255, 71, 87, 0.3);
+    }
+  </style>
+</head>
+<body>
+
+  <div id="game-container">
+    <canvas id="game-canvas"></canvas>
+
+    <!-- Top HUD Overlay -->
+    <div id="hud-top">
+      <div style="display: flex; gap: 10px;">
+        <div class="hud-pill">
+          <span>🐾 Điểm:</span>
+          <span id="hud-score" style="color: #ff4757; font-size: 17px;">0</span>
+        </div>
+        <div class="hud-pill" id="hud-timer-container" style="display: none;">
+          <span>⏱️:</span>
+          <span id="hud-timer" style="color: #2ed573;">60s</span>
+        </div>
+      </div>
+
+      <div style="display: flex; gap: 8px; pointer-events: auto;">
+        <!-- Stage Dropdown -->
+        <div class="stage-dropdown-container" id="stage-dropdown-container">
+          <button class="hud-btn stage-dropdown-trigger" id="btn-stage" title="Chọn màn chơi (Menu Sổ Xuống)">
+            <span id="hud-stage-icon">🏡</span>
+            <span id="hud-stage-name">Phòng Khách Ấm Cúng</span>
+            <span class="dropdown-chevron">▼</span>
+          </button>
+          <div class="stage-dropdown-menu" id="stage-dropdown-menu">
+            <!-- Dynamically populated -->
+          </div>
+        </div>
+
+        <button class="hud-btn" id="btn-gallery" title="Bộ sưu tập mèo">
+          <span>📖</span>
+          <span>Bộ Sưu Tập</span>
+          <span id="hud-gallery-badge" style="background:#ff4757; color:#fff; border-radius:10px; padding:1px 6px; font-size:11px;">0/12</span>
+        </button>
+        <button class="hud-btn" id="btn-settings" title="Cài đặt trò chơi">
+          <span>⚙️</span>
+          <span>Cài Đặt</span>
+        </button>
+        <button class="hud-btn" id="btn-mute" title="Bật/Tắt âm thanh">
+          <span id="hud-mute-icon">🔊</span>
+        </button>
+        <button class="hud-btn" id="btn-pause" title="Tạm dừng">
+          <span id="hud-pause-icon">⏸️</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Bottom HUD -->
+    <div id="hud-bottom">
+      <div class="tank-panel">
+        <div class="tank-header">
+          <span>💧 Bình Nước (Water Tank)</span>
+          <span id="tank-ammo-text">20/20</span>
+        </div>
+        <div class="tank-bar-container">
+          <div class="tank-bar-fill" id="tank-bar-fill"></div>
+          <div class="tank-cooldown-text" id="tank-cooldown-text">Đang Nạp Nước (2.0s)...</div>
+        </div>
+      </div>
+
+      <div class="controls-row">
+        <!-- Palette -->
+        <div class="palette-panel">
+          <span style="font-size: 11px; font-weight: 800; color: #57606f;">MÀU:</span>
+          <div class="color-chip active" style="background: #ff6b8b;" data-color="#ff6b8b" title="Hồng Pastel"></div>
+          <div class="color-chip" style="background: #48dbfb;" data-color="#48dbfb" title="Xanh Biển"></div>
+          <div class="color-chip" style="background: #1dd1a1;" data-color="#1dd1a1" title="Xanh Lá Tươi"></div>
+          <div class="color-chip" style="background: #feca57;" data-color="#feca57" title="Vàng Ánh Dương"></div>
+          <div class="color-chip" style="background: #a29bfe;" data-color="#a29bfe" title="Tím Kẹo Ngọt"></div>
+          <div class="color-chip chip-rainbow" data-color="rainbow" title="Bảy Sắc Cầu Vồng 🌈">🌈</div>
+        </div>
+
+        <!-- Shape Selector -->
+        <div class="shape-panel" id="shape-selector">
+          <span style="font-size: 11px; font-weight: 800; color: #57606f;">HÌNH:</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Start Screen Overlay -->
+    <div id="start-screen">
+      <div class="game-logo">🫧 Bắn Bong Bóng Mèo Cưng 🐱</div>
+      <div class="game-subtitle">
+        Trải nghiệm góc nhìn thứ nhất (FPS) siêu mượt! Bắn bong bóng đổi màu hoặc 7 sắc cầu vồng lên các chú mèo tinh nghịch đang leo trèo trên kệ, nóc tủ và cành cây. Khám phá và mở khoá các hình bọt độc đáo!
+      </div>
+
+      <div class="mode-select-box">
+        <div class="mode-card" id="btn-mode-relax">
+          <span style="font-size: 36px;">🌈</span>
+          <h3>Chế Độ Thư Giãn</h3>
+          <p>Chơi vô tận không giới hạn thời gian, tự do ngắm nhìn mèo nô đùa và sưu tập trọn vẹn album!</p>
+          <button class="btn-primary" style="margin-top: 6px; padding: 8px 18px; font-size: 14px;">Bắt Đầu Chơi</button>
+        </div>
+
+        <div class="mode-card" id="btn-mode-challenge">
+          <span style="font-size: 36px;">⏱️</span>
+          <h3>Chế Độ Thử Thách</h3>
+          <p>Giới hạn 60 giây đua điểm cao! Bắn liên hoàn tạo combo nhân điểm và vượt kỷ lục của bạn!</p>
+          <button class="btn-secondary" style="margin-top: 6px; padding: 8px 18px; font-size: 14px;">Thử Thách Ngay</button>
+        </div>
+      </div>
+
+      <div style="margin-top: 8px;">
+        <button class="btn-secondary" id="btn-start-gallery" style="background: #fff; color: #333; border: 2px solid #ddd;">
+          📖 Xem Bách Khoa Toàn Thư Mèo
+        </button>
+      </div>
+    </div>
+
+    <!-- Collection Gallery Modal -->
+    <div class="modal-overlay" id="gallery-modal">
+      <div class="modal-card">
+        <!-- Top-Right Close Button -->
+        <button class="modal-close-icon-btn" id="btn-icon-close-gallery" title="Đóng">✕</button>
+
+        <div class="modal-title">
+          <span>📖 Bách Khoa Toàn Thư Mèo Quốc Tế</span>
+        </div>
+        <p style="font-size: 13px; color: #747d8c; margin-top: -4px;">
+          Bắn trúng các chú mèo trong màn chơi để mở khoá vào bộ sưu tập và nhận hình bong bóng mới! Nhấn vào mèo đã mở để xem chi tiết.
+        </p>
+
+        <div class="cat-grid" id="gallery-grid">
+          <!-- Dynamically populated -->
+        </div>
+
+        <div style="margin-top: 4px;">
+          <button class="btn-primary" id="btn-close-gallery">Đóng Bộ Sưu Tập</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Cat Detail Modal -->
+    <div class="modal-overlay" id="cat-detail-modal" style="z-index: 110;">
+      <div class="modal-card" style="max-width: 500px;">
+        <!-- Top-Right Close Button -->
+        <button class="modal-close-icon-btn" id="btn-icon-close-detail" title="Đóng">✕</button>
+
+        <div class="cat-detail-header">
+          <div class="cat-detail-avatar-box">
+            <canvas id="detail-avatar-canvas" width="80" height="80"></canvas>
+          </div>
+          <div class="cat-detail-meta">
+            <h3 id="detail-name">Mèo Ba Tư</h3>
+            <p id="detail-origin">Xuất xứ: Iran / Ba Tư</p>
+            <div id="detail-stars" style="color: #ffa502; font-size: 15px; margin-top: 3px;">⭐⭐⭐⭐⭐</div>
+          </div>
+        </div>
+
+        <div class="cat-detail-body">
+          <div class="cat-detail-row">
+            <span class="cat-detail-label">📜 Lịch Sử & Nguồn Gốc:</span>
+            <span id="detail-history">Lịch sử...</span>
+          </div>
+          <div class="cat-detail-row">
+            <span class="cat-detail-label">✨ Đặc Trưng Hình Dáng & Lông:</span>
+            <span id="detail-features">Ngoại hình...</span>
+          </div>
+          <div class="cat-detail-row">
+            <span class="cat-detail-label">💖 Tính Nết & Thói Quen:</span>
+            <span id="detail-temperament">Tính cách...</span>
+          </div>
+          <div class="cat-detail-row">
+            <span class="cat-detail-label">🫧 Hình Bong Bóng Mở Khoá:</span>
+            <span id="detail-reward">Hình trái tim 💖</span>
+          </div>
+        </div>
+
+        <div>
+          <button class="btn-primary" id="btn-close-detail">Đã Hiểu</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Settings Modal -->
+    <div class="modal-overlay" id="settings-modal" style="z-index: 115;">
+      <div class="modal-card">
+        <div class="settings-header-sticky">
+          <button class="modal-close-icon-btn" id="btn-icon-close-settings" title="Đóng">✕</button>
+          <div class="modal-title" style="text-align: center; margin-bottom: 2px;">
+            <span>⚙️ Cài Đặt Trò Chơi</span>
+          </div>
+          <p style="font-size: 13px; color: #747d8c; text-align: center; margin-top: 2px; margin-bottom: 2px;">
+            Tùy chỉnh thông số bình nước, mật độ mèo xuất hiện và chuyển đổi màn chơi
+          </p>
+        </div>
+
+        <div class="settings-scroll-body">
+          <!-- Setting 1: Max Ammo -->
+          <div class="settings-group">
+            <div class="settings-label-row">
+              <span class="settings-label">💧 Đạn Tối Đa Trong Bình Nước:</span>
+              <span class="settings-val-badge" id="val-max-ammo">20 phát</span>
+            </div>
+            <p class="settings-desc">
+              Số lượng phát bắn bong bóng trước khi bình nước cạn và cần nạp lại. (Mặc định: 20, Tối thiểu: 1, Tối đa: 80)
+            </p>
+            <div class="settings-slider-row">
+              <input type="range" id="range-max-ammo" min="1" max="80" value="20" class="settings-slider">
+              <input type="number" id="num-max-ammo" min="1" max="80" value="20" class="settings-num-input">
+            </div>
+          </div>
+
+          <!-- Setting 2: Min Cats on Screen -->
+          <div class="settings-group">
+            <div class="settings-label-row">
+              <span class="settings-label">🐱 Mèo Tối Thiểu Xuất Hiện Cùng Lúc:</span>
+              <span class="settings-val-badge" id="val-min-cats">4 con</span>
+            </div>
+            <p class="settings-desc">
+              Số lượng mèo tối thiểu luôn có mặt trên màn hình (đất + tầng cao). (Mặc định: 4, Tối thiểu: 2, Tối đa: 10)
+            </p>
+            <div class="settings-slider-row">
+              <input type="range" id="range-min-cats" min="2" max="10" value="4" class="settings-slider">
+              <input type="number" id="num-min-cats" min="2" max="10" value="4" class="settings-num-input">
+            </div>
+          </div>
+
+          <!-- Setting 3: Water Tank Reload Cooldown -->
+          <div class="settings-group">
+            <div class="settings-label-row">
+              <span class="settings-label">⏱️ Thời Gian Nạp Lại Bình Nước:</span>
+              <span class="settings-val-badge" id="val-cooldown">2.0s</span>
+            </div>
+            <p class="settings-desc">
+              Số giây cần chờ để nạp đầy bình sau khi bắn hết đạn. Đặt 0.0s để nạp đạn tức thì! (Mặc định: 2.0s, Min: 0.0s, Max: 10.0s)
+            </p>
+            <div class="settings-slider-row">
+              <input type="range" id="range-cooldown" min="0" max="10" step="0.5" value="2" class="settings-slider">
+              <input type="number" id="num-cooldown" min="0" max="10" step="0.5" value="2" class="settings-num-input">
+            </div>
+          </div>
+
+          <!-- Setting 4: Quick Stage Select -->
+          <div class="settings-group">
+            <div class="settings-label-row">
+              <span class="settings-label">🗺️ Chọn Nhanh Màn Chơi (8 Màn):</span>
+            </div>
+            <div class="stage-select-grid" id="settings-stage-grid">
+              <!-- Dynamically populated with 8 stages -->
+            </div>
+          </div>
+
+          <!-- Setting 5: Factory Reset All Data -->
+          <div class="settings-group" style="background: #fff5f5; border: 1.5px solid #feb2b2;">
+            <div class="settings-label-row">
+              <span class="settings-label" style="color: #c53030;">⚠️ Khôi Phục Gốc (Reset Data):</span>
+            </div>
+            <p class="settings-desc" style="color: #9b2c2c;">
+              Xóa sạch điểm cao, toàn bộ album mèo, các hình bọt đã mở khoá và cài đặt để bắt đầu lại từ đầu như mới tải.
+            </p>
+            <button type="button" id="btn-reset-all-data" style="background: #e53e3e; color: #ffffff; border: none; padding: 8px 14px; border-radius: 10px; font-weight: 800; font-size: 12px; cursor: pointer; display: flex; align-items: center; gap: 6px; box-shadow: 0 2px 6px rgba(229, 62, 62, 0.25); transition: all 0.2s ease;">
+              <span>🗑️ Xóa Toàn Bộ Dữ Liệu & Chơi Lại Từ Đầu</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Sticky Actions Row -->
+        <div class="settings-actions-row">
+          <button class="btn-secondary" id="btn-reset-settings" title="Đưa các thanh trượt cài đặt về giá trị mặc định" style="background: #f1f2f6; color: #57606f; border: 1.5px solid #dcdde1; padding: 10px 14px; border-radius: 12px; font-weight: 700; cursor: pointer;">
+            🔄 Mặc Định
+          </button>
+          <button type="button" id="btn-reset-all-data-bar" title="Xóa toàn bộ điểm số, album mèo và cài đặt" style="background: #fff5f5; color: #e53e3e; border: 1.5px solid #feb2b2; padding: 10px 14px; border-radius: 12px; font-weight: 800; cursor: pointer;">
+            🗑️ Xóa Hết Data
+          </button>
+          <button class="btn-primary" id="btn-save-settings" style="flex: 1; padding: 10px 16px; border-radius: 12px; font-weight: 800; cursor: pointer;">
+            💾 Lưu & Áp Dụng
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Game Over Modal (Challenge Mode) -->
+    <div class="modal-overlay" id="game-over-modal">
+      <div class="modal-card">
+        <div class="modal-title">🎉 Hết Giờ Thử Thách!</div>
+        <p style="font-size: 15px; color: #57606f;">Bạn đã hoàn thành 60 giây xuất sắc!</p>
+
+        <div style="background: #f1f2f6; border-radius: 16px; padding: 18px; display: flex; flex-direction: column; gap: 8px;">
+          <div style="display: flex; justify-content: space-between; font-weight: 700;">
+            <span>Điểm Đạt Được:</span>
+            <span id="over-score" style="color: #ff4757; font-size: 20px;">0</span>
+          </div>
+          <div style="display: flex; justify-content: space-between; font-weight: 700;">
+            <span>Kỷ Lục Cao Nhất:</span>
+            <span id="over-high-score" style="color: #ffa502; font-size: 18px;">0</span>
+          </div>
+          <div style="display: flex; justify-content: space-between; font-weight: 600; color: #747d8c;">
+            <span>Số Chú Mèo Đã Bắn Trúng:</span>
+            <span id="over-cats-count">0</span>
+          </div>
+          <div style="display: flex; justify-content: space-between; font-weight: 600; color: #747d8c;">
+            <span>Tiến Độ Bộ Sưu Tập:</span>
+            <span id="over-collection-progress">0/12 (0%)</span>
+          </div>
+        </div>
+
+        <div style="display: flex; justify-content: center; gap: 12px; margin-top: 8px;">
+          <button class="btn-primary" id="btn-over-retry">Chơi Lại Ngay</button>
+          <button class="btn-secondary" id="btn-over-menu">Về Menu Chính</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <script type="module">
+    import { Game, GAME_STATES, GAME_MODES } from './src/main.js';
+    import { CAT_CATALOG, BUBBLE_SHAPES } from './src/data/cat-catalog.js';
+    import { STAGE_CONFIGS } from './src/scenes/scene-manager.js';
+
+    const canvas = document.getElementById('game-canvas');
+    const game = new Game(canvas);
+
+    // DOM Elements
+    const hudScore = document.getElementById('hud-score');
+    const hudTimer = document.getElementById('hud-timer');
+    const hudTimerContainer = document.getElementById('hud-timer-container');
+    const hudStageName = document.getElementById('hud-stage-name');
+    const hudGalleryBadge = document.getElementById('hud-gallery-badge');
+    const hudMuteIcon = document.getElementById('hud-mute-icon');
+    const hudPauseIcon = document.getElementById('hud-pause-icon');
+    const tankBarFill = document.getElementById('tank-bar-fill');
+    const tankAmmoText = document.getElementById('tank-ammo-text');
+    const tankCooldownText = document.getElementById('tank-cooldown-text');
+    const shapeSelector = document.getElementById('shape-selector');
+
+    // Modals
+    const startScreen = document.getElementById('start-screen');
+    const galleryModal = document.getElementById('gallery-modal');
+    const catDetailModal = document.getElementById('cat-detail-modal');
+    const gameOverModal = document.getElementById('game-over-modal');
+    const settingsModal = document.getElementById('settings-modal');
+
+    // Buttons
+    const btnModeRelax = document.getElementById('btn-mode-relax');
+    const btnModeChallenge = document.getElementById('btn-mode-challenge');
+    const btnStage = document.getElementById('btn-stage');
+    const btnGallery = document.getElementById('btn-gallery');
+    const btnSettings = document.getElementById('btn-settings');
+    const btnStartGallery = document.getElementById('btn-start-gallery');
+    const btnCloseGallery = document.getElementById('btn-close-gallery');
+    const btnIconCloseGallery = document.getElementById('btn-icon-close-gallery');
+    const btnCloseDetail = document.getElementById('btn-close-detail');
+    const btnIconCloseDetail = document.getElementById('btn-icon-close-detail');
+    const btnIconCloseSettings = document.getElementById('btn-icon-close-settings');
+    const btnResetSettings = document.getElementById('btn-reset-settings');
+    const btnResetAllData = document.getElementById('btn-reset-all-data');
+    const btnResetAllDataBar = document.getElementById('btn-reset-all-data-bar');
+    const btnSaveSettings = document.getElementById('btn-save-settings');
+    const rangeMaxAmmo = document.getElementById('range-max-ammo');
+    const numMaxAmmo = document.getElementById('num-max-ammo');
+    const valMaxAmmo = document.getElementById('val-max-ammo');
+    const rangeMinCats = document.getElementById('range-min-cats');
+    const numMinCats = document.getElementById('num-min-cats');
+    const valMinCats = document.getElementById('val-min-cats');
+    const rangeCooldown = document.getElementById('range-cooldown');
+    const numCooldown = document.getElementById('num-cooldown');
+    const valCooldown = document.getElementById('val-cooldown');
+    const settingsStageGrid = document.getElementById('settings-stage-grid');
+    const stageDropdownContainer = document.getElementById('stage-dropdown-container');
+    const stageDropdownMenu = document.getElementById('stage-dropdown-menu');
+    const hudStageIcon = document.getElementById('hud-stage-icon');
+    const btnMute = document.getElementById('btn-mute');
+    const btnPause = document.getElementById('btn-pause');
+    const btnOverRetry = document.getElementById('btn-over-retry');
+    const btnOverMenu = document.getElementById('btn-over-menu');
+
+    // Color Palette chips
+    const colorChips = document.querySelectorAll('.color-chip');
+    colorChips.forEach(chip => {
+      chip.addEventListener('click', () => {
+        colorChips.forEach(c => c.classList.remove('active'));
+        chip.classList.add('active');
+        const chosenColor = chip.getAttribute('data-color');
+        game.cannon.setBubbleColor(chosenColor);
+      });
+    });
+
+    // Bubble Shape Selector
+    function renderShapeSelector() {
+      const chips = shapeSelector.querySelectorAll('.shape-chip');
+      chips.forEach(c => c.remove());
+
+      Object.values(BUBBLE_SHAPES).forEach(shape => {
+        const isUnlocked = game.sceneManager.isShapeUnlocked(shape.id);
+        const chip = document.createElement('div');
+        chip.className = `shape-chip ${isUnlocked ? '' : 'locked'} ${game.cannon.currentShape === shape.id ? 'active' : ''}`;
+        chip.textContent = isUnlocked ? shape.icon : '🔒';
+        chip.title = isUnlocked ? `${shape.name}: ${shape.desc}` : 'Mở khoá bằng cách bắn trúng mèo quý hiếm!';
+
+        if (isUnlocked) {
+          chip.addEventListener('click', () => {
+            shapeSelector.querySelectorAll('.shape-chip').forEach(c => c.classList.remove('active'));
+            chip.classList.add('active');
+            game.cannon.setBubbleShape(shape.id);
+          });
+        }
+        shapeSelector.appendChild(chip);
+      });
+    }
+    renderShapeSelector();
+
+    window.onShapeUnlocked = () => {
+      renderShapeSelector();
+    };
+
+    // Mode selection
+    btnModeRelax.addEventListener('click', () => {
+      startScreen.style.display = 'none';
+      hudTimerContainer.style.display = 'none';
+      game.start(GAME_MODES.RELAX);
+    });
+
+    btnModeChallenge.addEventListener('click', () => {
+      startScreen.style.display = 'none';
+      hudTimerContainer.style.display = 'flex';
+      game.start(GAME_MODES.CHALLENGE);
+    });
+
+    const stageIcons = ['🏡', '🍬', '🌳', '🏖️', '🌊', '🏜️', '🚀', '❄️'];
+
+    // Stage Dropdown Menu Populate & Handler
+    function renderStageDropdown() {
+      stageDropdownMenu.innerHTML = '';
+      STAGE_CONFIGS.forEach((stg, idx) => {
+        const item = document.createElement('button');
+        item.type = 'button';
+        item.className = `stage-dropdown-item ${game.sceneManager.currentStageIndex === idx ? 'active' : ''}`;
+        item.innerHTML = `
+          <span class="stage-dropdown-item-icon">${stageIcons[idx] || '🗺️'}</span>
+          <span>${stg.name}</span>
+        `;
+        item.addEventListener('click', (e) => {
+          e.stopPropagation();
+          game.setStage(idx);
+          updateStageHUD(idx);
+          stageDropdownContainer.classList.remove('open');
+          game.showToast(`🗺️ Chuyển sang màn: ${stg.name}`);
+        });
+        stageDropdownMenu.appendChild(item);
+      });
+    }
+
+    function updateStageHUD(idx) {
+      hudStageIcon.textContent = stageIcons[idx] || '🗺️';
+      hudStageName.textContent = STAGE_CONFIGS[idx].name;
+      stageDropdownMenu.querySelectorAll('.stage-dropdown-item').forEach((item, i) => {
+        item.classList.toggle('active', i === idx);
+      });
+      document.querySelectorAll('.stage-select-btn').forEach((btn, i) => {
+        btn.classList.toggle('active', i === idx);
+      });
+    }
+
+    renderStageDropdown();
+
+    // Toggle Dropdown on button click
+    btnStage.addEventListener('click', (e) => {
+      e.stopPropagation();
+      stageDropdownContainer.classList.toggle('open');
+    });
+
+    // Close dropdown on click outside
+    document.addEventListener('click', (e) => {
+      if (!stageDropdownContainer.contains(e.target)) {
+        stageDropdownContainer.classList.remove('open');
+      }
+    });
+
+    // Settings Modal Logic
+    function openSettings() {
+      // Sync values with current game config
+      rangeMaxAmmo.value = game.cannon.maxWater;
+      numMaxAmmo.value = game.cannon.maxWater;
+      valMaxAmmo.textContent = `${game.cannon.maxWater} phát`;
+
+      rangeMinCats.value = game.spawner.minActiveCats;
+      numMinCats.value = game.spawner.minActiveCats;
+      valMinCats.textContent = `${game.spawner.minActiveCats} con`;
+
+      rangeCooldown.value = game.cannon.cooldownDuration;
+      numCooldown.value = game.cannon.cooldownDuration;
+      valCooldown.textContent = `${game.cannon.cooldownDuration.toFixed(1)}s`;
+
+      renderSettingsStageGrid();
+      settingsModal.classList.add('active');
+    }
+
+    function closeSettings() {
+      settingsModal.classList.remove('active');
+    }
+
+    function renderSettingsStageGrid() {
+      settingsStageGrid.innerHTML = '';
+      STAGE_CONFIGS.forEach((stg, idx) => {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = `stage-select-btn ${game.sceneManager.currentStageIndex === idx ? 'active' : ''}`;
+        btn.innerHTML = `<span style="font-size: 16px;">${stageIcons[idx] || '🗺️'}</span><span>${stg.name}</span>`;
+        btn.addEventListener('click', () => {
+          game.setStage(idx);
+          updateStageHUD(idx);
+          renderSettingsStageGrid();
+          game.showToast(`🗺️ Chuyển sang màn: ${stg.name}`);
+        });
+        settingsStageGrid.appendChild(btn);
+      });
+    }
+
+    // Bidirectional sync for Max Ammo
+    rangeMaxAmmo.addEventListener('input', () => {
+      numMaxAmmo.value = rangeMaxAmmo.value;
+      valMaxAmmo.textContent = `${rangeMaxAmmo.value} phát`;
+    });
+    numMaxAmmo.addEventListener('input', () => {
+      let v = parseInt(numMaxAmmo.value) || 20;
+      v = Math.max(1, Math.min(80, v));
+      rangeMaxAmmo.value = v;
+      valMaxAmmo.textContent = `${v} phát`;
+    });
+
+    // Bidirectional sync for Min Cats
+    rangeMinCats.addEventListener('input', () => {
+      numMinCats.value = rangeMinCats.value;
+      valMinCats.textContent = `${rangeMinCats.value} con`;
+    });
+    numMinCats.addEventListener('input', () => {
+      let v = parseInt(numMinCats.value) || 4;
+      v = Math.max(2, Math.min(10, v));
+      rangeMinCats.value = v;
+      valMinCats.textContent = `${v} con`;
+    });
+
+    // Bidirectional sync for Reload Cooldown
+    rangeCooldown.addEventListener('input', () => {
+      numCooldown.value = rangeCooldown.value;
+      valCooldown.textContent = `${parseFloat(rangeCooldown.value).toFixed(1)}s`;
+    });
+    numCooldown.addEventListener('input', () => {
+      let v = parseFloat(numCooldown.value) || 0;
+      v = Math.max(0, Math.min(10, v));
+      rangeCooldown.value = v;
+      valCooldown.textContent = `${v.toFixed(1)}s`;
+    });
+
+    // Reset Defaults
+    btnResetSettings.addEventListener('click', () => {
+      rangeMaxAmmo.value = 20;
+      numMaxAmmo.value = 20;
+      valMaxAmmo.textContent = '20 phát';
+
+      rangeMinCats.value = 4;
+      numMinCats.value = 4;
+      valMinCats.textContent = '4 con';
+
+      rangeCooldown.value = 2.0;
+      numCooldown.value = 2.0;
+      valCooldown.textContent = '2.0s';
+    });
+
+    // Factory Reset All Data
+    function handleResetAllData() {
+      const confirmed = window.confirm(
+        "⚠️ CẢNH BÁO XÓA DỮ LIỆU GAME:\n\n" +
+        "Bạn có chắc chắn muốn xóa TOÀN BỘ dữ liệu không?\n" +
+        "• Kỷ lục điểm cao nhất\n" +
+        "• Tiến độ 12 giống mèo trong Bộ Sưu Tập\n" +
+        "• Toàn bộ hình dáng bong bóng đặc biệt đã mở khóa\n" +
+        "• Các thông số cấu hình đã tùy chỉnh\n\n" +
+        "Hành động này không thể hoàn tác. Game sẽ tải lại như chơi lần đầu tiên!"
+      );
+      if (confirmed) {
+        game.resetAllData();
+        window.location.reload();
+      }
+    }
+    if (btnResetAllData) btnResetAllData.addEventListener('click', handleResetAllData);
+    if (btnResetAllDataBar) btnResetAllDataBar.addEventListener('click', handleResetAllData);
+
+    // Save & Apply
+    btnSaveSettings.addEventListener('click', () => {
+      const maxAmmo = parseInt(rangeMaxAmmo.value) || 20;
+      const minCats = parseInt(rangeMinCats.value) || 4;
+      const cooldownDuration = parseFloat(rangeCooldown.value) || 0;
+      game.saveSettings({ maxAmmo, minCats, cooldownDuration });
+
+      tankAmmoText.textContent = `${game.cannon.currentWater}/${game.cannon.maxWater}`;
+      tankBarFill.style.width = `${game.cannon.getWaterRatio() * 100}%`;
+
+      game.showToast('✅ Đã lưu cấu hình cài đặt thành công!');
+      closeSettings();
+    });
+
+    btnSettings.addEventListener('click', openSettings);
+    btnIconCloseSettings.addEventListener('click', closeSettings);
+    settingsModal.addEventListener('click', (e) => {
+      if (e.target === settingsModal) closeSettings();
+    });
+
+    // Mute toggle
+    btnMute.addEventListener('click', () => {
+      const isMuted = game.audioManager.toggleMute();
+      hudMuteIcon.textContent = isMuted ? '🔇' : '🔊';
+    });
+
+    // Pause toggle
+    btnPause.addEventListener('click', () => {
+      if (game.state === GAME_STATES.PLAYING) {
+        game.pause();
+        hudPauseIcon.textContent = '▶️';
+      } else if (game.state === GAME_STATES.PAUSED) {
+        game.resume();
+        hudPauseIcon.textContent = '⏸️';
+      }
+    });
+
+    // Collection Gallery logic
+    function openGallery() {
+      renderGalleryGrid();
+      galleryModal.classList.add('active');
+    }
+
+    function closeGallery() {
+      galleryModal.classList.remove('active');
+    }
+
+    btnGallery.addEventListener('click', openGallery);
+    btnStartGallery.addEventListener('click', openGallery);
+    btnCloseGallery.addEventListener('click', closeGallery);
+    btnIconCloseGallery.addEventListener('click', closeGallery);
+    galleryModal.addEventListener('click', (e) => {
+      if (e.target === galleryModal) closeGallery();
+    });
+    btnCloseDetail.addEventListener('click', () => catDetailModal.classList.remove('active'));
+    btnIconCloseDetail.addEventListener('click', () => catDetailModal.classList.remove('active'));
+    catDetailModal.addEventListener('click', (e) => {
+      if (e.target === catDetailModal) catDetailModal.classList.remove('active');
+    });
+
+    /**
+     * Procedurally render real in-game cat avatar illustration on a canvas
+     */
+    function drawCatAvatar(cvs, cat, isUnlocked) {
+      const ctx = cvs.getContext('2d');
+      const w = cvs.width;
+      const h = cvs.height;
+      ctx.clearRect(0, 0, w, h);
+
+      const cx = w / 2;
+      const cy = h / 2 + 2;
+      const r = w * 0.32;
+
+      // Circular avatar frame
+      ctx.save();
+      ctx.beginPath();
+      ctx.arc(cx, cy - 2, w * 0.46, 0, Math.PI * 2);
+      ctx.clip();
+
+      if (isUnlocked) {
+        const bgGrad = ctx.createRadialGradient(cx, cy - 4, 4, cx, cy, w * 0.5);
+        bgGrad.addColorStop(0, '#ffffff');
+        bgGrad.addColorStop(1, '#ffeaa7');
+        ctx.fillStyle = bgGrad;
+      } else {
+        ctx.fillStyle = '#636e72';
+      }
+      ctx.fillRect(0, 0, w, h);
+
+      // Cat Head Silhouette / Color
+      const primaryColor = isUnlocked ? cat.primaryColor : '#2d3436';
+      const earColor = isUnlocked ? (cat.breedType === 'siamese' ? '#3e2723' : cat.primaryColor) : '#1e272e';
+      const eyeColor = isUnlocked ? cat.eyeColor : '#636e72';
+
+      // 1. Ears
+      ctx.fillStyle = earColor;
+      if (cat.earType === 'folded') {
+        // Folded ears
+        ctx.beginPath();
+        ctx.arc(cx - r * 0.6, cy - r * 0.6, r * 0.35, 0, Math.PI * 2);
+        ctx.arc(cx + r * 0.6, cy - r * 0.6, r * 0.35, 0, Math.PI * 2);
+        ctx.fill();
+      } else if (cat.earType === 'huge_bat') {
+        // Bat ears
+        ctx.beginPath();
+        ctx.moveTo(cx - r * 0.7, cy - r * 0.3);
+        ctx.lineTo(cx - r * 1.1, cy - r * 1.4);
+        ctx.lineTo(cx - r * 0.1, cy - r * 0.6);
+        ctx.closePath();
+        ctx.fill();
+
+        ctx.beginPath();
+        ctx.moveTo(cx + r * 0.1, cy - r * 0.6);
+        ctx.lineTo(cx + r * 1.1, cy - r * 1.4);
+        ctx.lineTo(cx + r * 0.7, cy - r * 0.3);
+        ctx.closePath();
+        ctx.fill();
+      } else {
+        // Triangular ears
+        ctx.beginPath();
+        ctx.moveTo(cx - r * 0.7, cy - r * 0.35);
+        ctx.lineTo(cx - r * 0.85, cy - r * 1.1);
+        ctx.lineTo(cx - r * 0.15, cy - r * 0.65);
+        ctx.closePath();
+        ctx.fill();
+
+        ctx.beginPath();
+        ctx.moveTo(cx + r * 0.15, cy - r * 0.65);
+        ctx.lineTo(cx + r * 0.85, cy - r * 1.1);
+        ctx.lineTo(cx + r * 0.7, cy - r * 0.35);
+        ctx.closePath();
+        ctx.fill();
+
+        if (cat.earType === 'lynx_tufted' && isUnlocked) {
+          ctx.strokeStyle = '#2d3436';
+          ctx.lineWidth = 1.8;
+          ctx.beginPath();
+          ctx.moveTo(cx - r * 0.85, cy - r * 1.1);
+          ctx.lineTo(cx - r * 0.95, cy - r * 1.25);
+          ctx.moveTo(cx + r * 0.85, cy - r * 1.1);
+          ctx.lineTo(cx + r * 0.95, cy - r * 1.25);
+          ctx.stroke();
+        }
+      }
+
+      // Inner ears pink
+      if (isUnlocked) {
+        ctx.fillStyle = '#ffb8b8';
+        ctx.beginPath();
+        ctx.moveTo(cx - r * 0.55, cy - r * 0.4);
+        ctx.lineTo(cx - r * 0.72, cy - r * 0.9);
+        ctx.lineTo(cx - r * 0.25, cy - r * 0.6);
+        ctx.closePath();
+        ctx.fill();
+
+        ctx.beginPath();
+        ctx.moveTo(cx + r * 0.25, cy - r * 0.6);
+        ctx.lineTo(cx + r * 0.72, cy - r * 0.9);
+        ctx.lineTo(cx + r * 0.55, cy - r * 0.4);
+        ctx.closePath();
+        ctx.fill();
+      }
+
+      // 2. Head Shape
+      ctx.fillStyle = primaryColor;
+      ctx.beginPath();
+      if (cat.bodyType === 'extra_fluffy') {
+        ctx.arc(cx, cy, r, 0, Math.PI * 2);
+        ctx.arc(cx - r * 0.7, cy + r * 0.15, r * 0.45, 0, Math.PI * 2);
+        ctx.arc(cx + r * 0.7, cy + r * 0.15, r * 0.45, 0, Math.PI * 2);
+      } else {
+        ctx.ellipse(cx, cy, r, r * 0.88, 0, 0, Math.PI * 2);
+      }
+      ctx.fill();
+
+      // Markings
+      if (isUnlocked) {
+        if (cat.breedType === 'siamese') {
+          ctx.fillStyle = '#3e2723';
+          ctx.beginPath();
+          ctx.ellipse(cx, cy + 2, r * 0.55, r * 0.45, 0, 0, Math.PI * 2);
+          ctx.fill();
+        } else if (cat.breedType === 'bengal') {
+          ctx.fillStyle = '#4e342e';
+          const spots = [
+            { x: cx - r * 0.45, y: cy - r * 0.1, s: 2.8 },
+            { x: cx + r * 0.45, y: cy - r * 0.1, s: 3.0 },
+            { x: cx, y: cy - r * 0.45, s: 2.5 }
+          ];
+          spots.forEach(sp => {
+            ctx.beginPath();
+            ctx.arc(sp.x, sp.y, sp.s, 0, Math.PI * 2);
+            ctx.fill();
+          });
+        } else if (cat.breedType === 'calico') {
+          ctx.fillStyle = '#ff6f00';
+          ctx.beginPath();
+          ctx.arc(cx - r * 0.35, cy - r * 0.25, r * 0.35, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.fillStyle = '#212121';
+          ctx.beginPath();
+          ctx.arc(cx + r * 0.35, cy - r * 0.2, r * 0.3, 0, Math.PI * 2);
+          ctx.fill();
+        } else if (cat.breedType === 'tabby') {
+          ctx.strokeStyle = cat.stripesColor;
+          ctx.lineWidth = 1.6;
+          ctx.beginPath();
+          ctx.moveTo(cx - 5, cy - r * 0.5);
+          ctx.lineTo(cx - 2, cy - r * 0.35);
+          ctx.lineTo(cx, cy - r * 0.46);
+          ctx.lineTo(cx + 2, cy - r * 0.35);
+          ctx.lineTo(cx + 5, cy - r * 0.5);
+          ctx.stroke();
+        }
+      }
+
+      // 3. Cheeks & Eyes
+      if (isUnlocked) {
+        // Blush
+        ctx.fillStyle = 'rgba(255, 120, 140, 0.45)';
+        ctx.beginPath();
+        ctx.arc(cx - r * 0.5, cy + r * 0.15, 4.5, 0, Math.PI * 2);
+        ctx.arc(cx + r * 0.5, cy + r * 0.15, 4.5, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Eyes
+        ctx.fillStyle = eyeColor;
+        ctx.beginPath();
+        ctx.ellipse(cx - r * 0.36, cy - r * 0.1, 5, 6, 0, 0, Math.PI * 2);
+        ctx.ellipse(cx + r * 0.36, cy - r * 0.1, 5, 6, 0, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Pupils
+        ctx.fillStyle = '#1e272e';
+        ctx.beginPath();
+        ctx.ellipse(cx - r * 0.36, cy - r * 0.1, 2.5, 4.5, 0, 0, Math.PI * 2);
+        ctx.ellipse(cx + r * 0.36, cy - r * 0.1, 2.5, 4.5, 0, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Eye highlights
+        ctx.fillStyle = '#ffffff';
+        ctx.beginPath();
+        ctx.arc(cx - r * 0.36 - 1.5, cy - r * 0.1 - 2, 1.8, 0, Math.PI * 2);
+        ctx.arc(cx + r * 0.36 - 1.5, cy - r * 0.1 - 2, 1.8, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Nose
+        ctx.fillStyle = '#ff7675';
+        ctx.beginPath();
+        ctx.moveTo(cx, cy + 2);
+        ctx.lineTo(cx - 2.5, cy - 1);
+        ctx.lineTo(cx + 2.5, cy - 1);
+        ctx.closePath();
+        ctx.fill();
+
+        // Whiskers
+        ctx.strokeStyle = '#485460';
+        ctx.lineWidth = 1.2;
+        ctx.beginPath();
+        ctx.moveTo(cx - r * 0.3, cy + 2);
+        ctx.lineTo(cx - r * 0.8, cy + 1);
+        ctx.moveTo(cx - r * 0.3, cy + 4);
+        ctx.lineTo(cx - r * 0.8, cy + 6);
+        ctx.moveTo(cx + r * 0.3, cy + 2);
+        ctx.lineTo(cx + r * 0.8, cy + 1);
+        ctx.moveTo(cx + r * 0.3, cy + 4);
+        ctx.lineTo(cx + r * 0.8, cy + 6);
+        ctx.stroke();
+      } else {
+        // Mysterious silhouette lock icon
+        ctx.fillStyle = '#ffffff';
+        ctx.beginPath();
+        ctx.roundRect(cx - 7, cy - 2, 14, 12, 3);
+        ctx.fill();
+
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = 2.5;
+        ctx.beginPath();
+        ctx.arc(cx, cy - 3, 5, Math.PI, 0, false);
+        ctx.stroke();
+
+        ctx.fillStyle = '#636e72';
+        ctx.beginPath();
+        ctx.arc(cx, cy + 3, 1.8, 0, Math.PI * 2);
+        ctx.fill();
+      }
+
+      ctx.restore();
+    }
+
+    function renderGalleryGrid() {
+      const grid = document.getElementById('gallery-grid');
+      grid.innerHTML = '';
+
+      CAT_CATALOG.forEach(cat => {
+        const isUnlocked = game.sceneManager.isCatUnlocked(cat.id);
+        const card = document.createElement('div');
+        card.className = `cat-card ${isUnlocked ? 'unlocked' : 'locked'}`;
+
+        const starsStr = '⭐'.repeat(cat.rarity);
+        const rewardShape = BUBBLE_SHAPES[cat.shapeReward];
+
+        card.innerHTML = `
+          <div class="cat-card-avatar">
+            <canvas class="cat-avatar-canvas" width="60" height="60" id="cat-cvs-${cat.id}"></canvas>
+          </div>
+          <div class="cat-card-name">${isUnlocked ? cat.name : 'Chưa Tìm Thấy'}</div>
+          <div class="cat-card-stars">${starsStr}</div>
+          ${isUnlocked && rewardShape ? `<div class="cat-card-reward">${rewardShape.icon} ${rewardShape.name}</div>` : ''}
+          ${isUnlocked ? '<div class="cat-card-ribbon">ĐÃ SƯU TẬP</div>' : ''}
+        `;
+
+        grid.appendChild(card);
+
+        // Render actual cat graphic on canvas
+        const catCanvas = card.querySelector(`#cat-cvs-${cat.id}`);
+        if (catCanvas) {
+          drawCatAvatar(catCanvas, cat, isUnlocked);
+        }
+
+        if (isUnlocked) {
+          card.addEventListener('click', () => showCatDetail(cat));
+        } else {
+          card.addEventListener('click', () => {
+            game.showToast(`🔍 ${cat.flag} Độ hiếm ${starsStr} - Hãy bắn trúng bé mèo này khi xuất hiện!`);
+          });
+        }
+      });
+
+      const prog = game.sceneManager.getCollectionProgress();
+      hudGalleryBadge.textContent = `${prog.unlockedCount}/${prog.totalCount}`;
+    }
+
+    function showCatDetail(cat) {
+      const detailCanvas = document.getElementById('detail-avatar-canvas');
+      if (detailCanvas) {
+        drawCatAvatar(detailCanvas, cat, true);
+      }
+
+      document.getElementById('detail-name').textContent = cat.name;
+      document.getElementById('detail-origin').textContent = `${cat.flag} Xuất xứ: ${cat.origin}`;
+      document.getElementById('detail-stars').textContent = '⭐'.repeat(cat.rarity);
+      document.getElementById('detail-history').textContent = cat.history;
+      document.getElementById('detail-features').textContent = cat.features;
+      document.getElementById('detail-temperament').textContent = cat.temperament;
+
+      const reward = BUBBLE_SHAPES[cat.shapeReward];
+      document.getElementById('detail-reward').textContent = reward ? `${reward.icon} ${reward.name}` : 'Bọt Tròn Cổ Điển 🫧';
+
+      catDetailModal.classList.add('active');
+    }
+
+    window.onGameFinished = (summary) => {
+      document.getElementById('over-score').textContent = summary.score.toLocaleString();
+      document.getElementById('over-high-score').textContent = summary.highScore.toLocaleString();
+      document.getElementById('over-cats-count').textContent = summary.catsPetted;
+      document.getElementById('over-collection-progress').textContent = 
+        `${summary.collectionProgress.unlockedCount}/${summary.collectionProgress.totalCount} (${summary.collectionProgress.percentage}%)`;
+      gameOverModal.classList.add('active');
+    };
+
+    btnOverRetry.addEventListener('click', () => {
+      gameOverModal.classList.remove('active');
+      game.start(GAME_MODES.CHALLENGE);
+    });
+
+    btnOverMenu.addEventListener('click', () => {
+      gameOverModal.classList.remove('active');
+      startScreen.style.display = 'flex';
+      game.state = GAME_STATES.MENU;
+    });
+
+    // High-performance dirty-checked HUD updater (Zero DOM thrashing at 60fps)
+    let lastScore = -1;
+    let lastTimer = -1;
+    let lastAmmo = -1;
+    let lastMaxAmmo = -1;
+    let lastCooldownState = null;
+    let lastCooldownSec = -1;
+    let lastBadgeStr = '';
+
+    function updateHUD() {
+      // 1. Score dirty check
+      if (game.score !== lastScore) {
+        lastScore = game.score;
+        hudScore.textContent = game.score.toLocaleString();
+      }
+
+      // 2. Challenge timer dirty check (updates at most once per second)
+      if (game.mode === GAME_MODES.CHALLENGE) {
+        const sec = Math.ceil(game.timeRemaining);
+        if (sec !== lastTimer) {
+          lastTimer = sec;
+          hudTimer.textContent = `${sec}s`;
+        }
+      }
+
+      // 3. Ammo & Cooldown dirty check
+      const ammo = game.cannon.currentAmmo;
+      const maxAmmo = game.cannon.maxAmmo;
+      if (ammo !== lastAmmo || maxAmmo !== lastMaxAmmo) {
+        lastAmmo = ammo;
+        lastMaxAmmo = maxAmmo;
+        tankAmmoText.textContent = `${ammo}/${maxAmmo}`;
+      }
+
+      const isCooling = game.cannon.isCoolingDown;
+      if (isCooling) {
+        const duration = game.cannon.cooldownDuration || 0.001;
+        const pct = Math.max(0, Math.min(100, (1 - (game.cannon.cooldownTimer / duration)) * 100));
+        tankBarFill.style.width = `${pct}%`;
+
+        if (lastCooldownState !== true) {
+          lastCooldownState = true;
+          tankBarFill.style.background = '#ee5253';
+          tankCooldownText.style.display = 'flex';
+        }
+
+        const remaining = Math.max(0, duration - game.cannon.cooldownTimer);
+        const roundedRemain = Math.ceil(remaining * 10) / 10;
+        if (roundedRemain !== lastCooldownSec) {
+          lastCooldownSec = roundedRemain;
+          tankCooldownText.textContent = `Đang Nạp Nước (${duration.toFixed(1)}s)...`;
+        }
+      } else {
+        if (lastCooldownState !== false) {
+          lastCooldownState = false;
+          tankBarFill.style.background = 'linear-gradient(90deg, #48dbfb, #2e86de)';
+          tankCooldownText.style.display = 'none';
+          const pct = maxAmmo > 0 ? (ammo / maxAmmo) * 100 : 0;
+          tankBarFill.style.width = `${pct}%`;
+        } else if (ammo !== lastAmmo || maxAmmo !== lastMaxAmmo) {
+          const pct = maxAmmo > 0 ? (ammo / maxAmmo) * 100 : 0;
+          tankBarFill.style.width = `${pct}%`;
+        }
+      }
+
+      // 4. Collection progress badge dirty check (only updates on unlock)
+      const unlockedCount = game.sceneManager.unlockedCats.size;
+      const totalCount = CAT_CATALOG.length;
+      const badgeStr = `${unlockedCount}/${totalCount}`;
+      if (badgeStr !== lastBadgeStr) {
+        lastBadgeStr = badgeStr;
+        hudGalleryBadge.textContent = badgeStr;
+      }
+
+      requestAnimationFrame(updateHUD);
+    }
+    requestAnimationFrame(updateHUD);
+  </script>
+</body>
+</html>

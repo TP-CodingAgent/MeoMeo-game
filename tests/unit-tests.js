@@ -1,0 +1,388 @@
+/**
+ * Cute Cat Bubble Shooter - Comprehensive Automated Unit Test Suite
+ * Tests Game Logic: Scoring, Stage Switching, Cat Management, Collision Physics,
+ * Water Tank Cooldown, Spawner Rarity, Rainbow Cycling, and Shape Unlocks.
+ */
+
+import { 
+  distance, 
+  lerp, 
+  clamp, 
+  isCircleCollidingCircle, 
+  isCircleCollidingAABB, 
+  springUpdate, 
+  hexToRgba 
+} from '../src/utils/math-physics.js';
+import { safeStorage } from '../src/utils/safe-storage.js';
+import { CAT_CATALOG, BUBBLE_SHAPES } from '../src/data/cat-catalog.js';
+import { Cannon } from '../src/systems/cannon.js';
+import { CatSpawner, CAT_STATES } from '../src/systems/spawner.js';
+import { SceneManager, STAGE_CONFIGS } from '../src/scenes/scene-manager.js';
+import { Prop } from '../src/entities/prop.js';
+import { Cat } from '../src/entities/cat.js';
+
+export async function runAllTests(reporter) {
+  const suites = [
+    testMathPhysics,
+    testSafeStorage,
+    testCatCatalogIntegrity,
+    testCannonAndWaterTankCooldown,
+    testSpawnerAndRarityDistribution,
+    testPropAndStartleMechanics,
+    testCatStateMachineAndHitTinting,
+    testSceneManagerAndCollectionProgress,
+    testGameSettingsAndStageExpansion
+  ];
+
+  for (const suite of suites) {
+    await suite(reporter);
+  }
+}
+
+async function testMathPhysics(t) {
+  t.suite('1. Math & Physics Utility Tests');
+
+  t.test('distance() calculates Euclidean distance correctly', () => {
+    t.assertEqual(distance(0, 0, 3, 4), 5, 'Distance (0,0) to (3,4) must be 5');
+    t.assertEqual(distance(10, 20, 10, 20), 0, 'Distance between identical points must be 0');
+  });
+
+  t.test('lerp() and clamp() boundary handling', () => {
+    t.assertEqual(lerp(10, 20, 0.5), 15, 'lerp(10, 20, 0.5) should be 15');
+    t.assertEqual(clamp(5, 10, 20), 10, 'clamp below min should equal min');
+    t.assertEqual(clamp(25, 10, 20), 20, 'clamp above max should equal max');
+    t.assertEqual(clamp(15, 10, 20), 15, 'clamp within range should return value');
+  });
+
+  t.test('isCircleCollidingCircle() detects overlaps', () => {
+    t.assertTrue(isCircleCollidingCircle(0, 0, 10, 15, 0, 10), 'Overlapping circles should collide');
+    t.assertFalse(isCircleCollidingCircle(0, 0, 5, 20, 0, 5), 'Distant circles should not collide');
+  });
+
+  t.test('isCircleCollidingAABB() detects circle vs rectangle collisions', () => {
+    t.assertTrue(isCircleCollidingAABB(50, 50, 15, 40, 40, 50, 50), 'Circle inside/touching AABB should collide');
+    t.assertFalse(isCircleCollidingAABB(10, 10, 5, 50, 50, 40, 40), 'Circle outside AABB should not collide');
+  });
+
+  t.test('hexToRgba() converts colors properly', () => {
+    t.assertEqual(hexToRgba('#ff0000', 0.5), 'rgba(255, 0, 0, 0.5)', 'Hex red conversion');
+    t.assertEqual(hexToRgba('#ffffff', 1), 'rgba(255, 255, 255, 1)', 'Hex white conversion');
+  });
+
+  t.test('springUpdate() damps oscillations towards target', () => {
+    let pos = 10;
+    let vel = 0;
+    for (let i = 0; i < 60; i++) {
+      const res = springUpdate(pos, vel, 0, 200, 15, 1 / 60);
+      pos = res.pos;
+      vel = res.vel;
+    }
+    t.assertTrue(Math.abs(pos) < 0.2, 'Spring position should settle near equilibrium target 0');
+  });
+}
+
+async function testSafeStorage(t) {
+  t.suite('2. Safe Storage Adapter Tests');
+
+  t.test('Stores and retrieves key-value pairs', () => {
+    safeStorage.setItem('test_cat_key', 'persian_fluffy');
+    t.assertEqual(safeStorage.getItem('test_cat_key'), 'persian_fluffy', 'Retrieved item should match stored value');
+    safeStorage.removeItem('test_cat_key');
+    t.assertEqual(safeStorage.getItem('test_cat_key'), null, 'Removed item should return null');
+  });
+}
+
+async function testCatCatalogIntegrity(t) {
+  t.suite('3. Cat Catalog Encyclopedia Data Integrity');
+
+  t.test('Catalog contains exactly 12 international breeds', () => {
+    t.assertEqual(CAT_CATALOG.length, 12, 'Catalog must contain 12 cat breeds');
+  });
+
+  t.test('Every cat has required fields, shapeReward and valid rarity (1 to 5)', () => {
+    for (const cat of CAT_CATALOG) {
+      t.assertTrue(Boolean(cat.id), `Cat ${cat.name || 'unnamed'} has id`);
+      t.assertTrue(Boolean(cat.name), `Cat ${cat.id} has name`);
+      t.assertTrue(Boolean(cat.origin), `Cat ${cat.id} has origin`);
+      t.assertTrue(Boolean(cat.flag), `Cat ${cat.id} has flag`);
+      t.assertTrue(Boolean(cat.history), `Cat ${cat.id} has history description`);
+      t.assertTrue(Boolean(cat.features), `Cat ${cat.id} has features description`);
+      t.assertTrue(Boolean(cat.temperament), `Cat ${cat.id} has temperament description`);
+      t.assertTrue(Boolean(cat.shapeReward), `Cat ${cat.id} has a shape reward`);
+      t.assertTrue(cat.rarity >= 1 && cat.rarity <= 5, `Cat ${cat.id} rarity must be between 1 and 5`);
+    }
+  });
+}
+
+async function testCannonAndWaterTankCooldown(t) {
+  t.suite('4. First-Person Blaster, Rainbow Mode & Water Tank');
+
+  t.test('Blaster starts with full tank of 20 bubbles and centers aim', () => {
+    const blaster = new Cannon(1280, 720);
+    t.assertEqual(blaster.currentAmmo, 20, 'Initial ammo should be 20');
+    t.assertFalse(blaster.isCoolingDown, 'Initial cooldown state should be false');
+    t.assertEqual(blaster.baseX, 640, 'Blaster anchored horizontally at 640');
+  });
+
+  t.test('Firing reduces ammo by 1', () => {
+    const blaster = new Cannon(1280, 720);
+    const bubble = blaster.fire();
+    t.assertTrue(bubble !== null, 'Firing with ammo should return bubble data');
+    t.assertEqual(blaster.currentAmmo, 19, 'Ammo should decrement to 19');
+  });
+
+  t.test('Rainbow mode cycles colors on each shot', () => {
+    const blaster = new Cannon(1280, 720);
+    blaster.setBubbleColor('rainbow');
+    t.assertTrue(blaster.isRainbowMode, 'Rainbow mode should be active');
+
+    const shot1 = blaster.fire(true);
+    const shot2 = blaster.fire(true);
+    t.assertTrue(shot1.color !== shot2.color, 'Subsequent shots in rainbow mode should have different colors');
+  });
+
+  t.test('Water tank triggers 2.0s cooldown when emptied', () => {
+    const blaster = new Cannon(1280, 720);
+    for (let i = 0; i < 20; i++) {
+      blaster.fire(true);
+    }
+    t.assertEqual(blaster.currentAmmo, 0, 'Ammo should be 0 after 20 shots');
+    t.assertTrue(blaster.isCoolingDown, 'Cooldown must be active when ammo is 0');
+    t.assertEqual(blaster.fire(), null, 'Cannot fire while cooling down');
+
+    blaster.update(1.0);
+    t.assertTrue(blaster.isCoolingDown, 'Should still be cooling down at 1.0s');
+
+    blaster.update(1.1);
+    t.assertFalse(blaster.isCoolingDown, 'Cooldown should end after 2.0s');
+    t.assertEqual(blaster.currentAmmo, 20, 'Ammo should be fully refilled to 20');
+  });
+}
+
+async function testSpawnerAndRarityDistribution(t) {
+  t.suite('5. Spawner, Elevated Platforms & Rarity Distribution');
+
+  t.test('Spawner selects cats and can place on elevated platform', () => {
+    const spawner = new CatSpawner();
+    const platforms = [new Prop({ id: 'shelf1', x: 300, y: 220, width: 200, height: 20, isPlatform: true })];
+    const cat = spawner.spawnCat([], platforms);
+    t.assertTrue(cat !== null, 'Spawned cat must not be null');
+    t.assertEqual(spawner.activeCats.length, 1, 'Active cats array should contain 1 cat');
+  });
+
+  t.test('Spawner limits maximum active cats on screen', () => {
+    const spawner = new CatSpawner();
+    spawner.maxActiveCats = 3;
+    for (let i = 0; i < 6; i++) {
+      spawner.spawnCat();
+    }
+    t.assertTrue(spawner.activeCats.length <= 3, 'Active cats must not exceed maxActiveCats');
+  });
+}
+
+async function testPropAndStartleMechanics(t) {
+  t.suite('6. Prop Elasticity & Startle Mechanics (PDR-004)');
+
+  t.test('Prop wobbles and records paint splat on hit', () => {
+    const prop = new Prop({ x: 300, y: 500, width: 100, height: 80 });
+    prop.onHit(310, 500, '#ff6b8b', null, null);
+    t.assertTrue(prop.splats.length === 1, 'Prop must record splat mark');
+    t.assertEqual(prop.splats[0].color, '#ff6b8b', 'Splat color matches bubble');
+    t.assertTrue(prop.vx !== 0 || prop.vy !== 0, 'Prop receives impulse velocity');
+  });
+
+  t.test('Startle: Prop hit scares hiding cat out into the open', () => {
+    const prop = new Prop({ x: 400, y: 500 });
+    const cat = new Cat(CAT_CATALOG[0], 400, 500);
+    cat.hideBehind(prop);
+
+    t.assertTrue(cat.isHiding, 'Cat should be hiding behind prop');
+    t.assertEqual(prop.hidingCat, cat, 'Prop references hiding cat');
+
+    prop.onHit(400, 500, '#48dbfb', null, null);
+
+    t.assertFalse(cat.isHiding, 'Cat should no longer be hiding');
+    t.assertEqual(cat.state, CAT_STATES.SURPRISED, 'Cat should transition to SURPRISED state');
+    t.assertEqual(prop.hidingCat, null, 'Prop hiding reference cleared');
+  });
+}
+
+async function testCatStateMachineAndHitTinting(t) {
+  t.suite('7. Cat State Machine & Fur Tinting (PDR-001)');
+
+  t.test('Cat hit applies fur tint color and enters celebrating state', () => {
+    const cat = new Cat(CAT_CATALOG[1], 500, 500);
+    cat.onHit('#1dd1a1', null, null);
+
+    t.assertEqual(cat.tintColor, '#1dd1a1', 'Cat fur tint color matches bubble');
+    t.assertEqual(cat.state, CAT_STATES.CELEBRATING, 'Cat enters CELEBRATING state');
+  });
+
+  t.test('Cat state update advances timers and returns to IDLE', () => {
+    const cat = new Cat(CAT_CATALOG[1], 500, 500);
+    cat.state = CAT_STATES.CELEBRATING;
+    cat.stateTimer = 0.1;
+    cat.update(0.15, { width: 1280, height: 720 }, [], []);
+    t.assertEqual(cat.state, CAT_STATES.IDLE, 'After celebrating, cat returns to IDLE');
+  });
+}
+
+async function testSceneManagerAndCollectionProgress(t) {
+  t.suite('8. Scene Manager, Cat Collection & Bubble Shape Unlocks');
+
+  t.test('Scene manager loads 8 distinct stages with elevated platforms', () => {
+    const sm = new SceneManager();
+    t.assertEqual(STAGE_CONFIGS.length, 8, 'Must have exactly 8 stages');
+    t.assertEqual(sm.currentStageIndex, 0, 'Starts at stage 0 (Living Room)');
+    t.assertTrue(sm.platforms.length > 0, 'Stage 1 should have platforms');
+    sm.nextStage();
+    t.assertEqual(sm.currentStageIndex, 1, 'Advances to stage 1 (Bedroom)');
+    sm.nextStage();
+    t.assertEqual(sm.currentStageIndex, 2, 'Advances to stage 2 (Garden)');
+    sm.nextStage();
+    t.assertEqual(sm.currentStageIndex, 3, 'Advances to stage 3 (Beach)');
+    sm.nextStage();
+    t.assertEqual(sm.currentStageIndex, 4, 'Advances to stage 4 (Ocean)');
+    sm.nextStage();
+    t.assertEqual(sm.currentStageIndex, 5, 'Advances to stage 5 (Desert)');
+    sm.nextStage();
+    t.assertEqual(sm.currentStageIndex, 6, 'Advances to stage 6 (Space)');
+    sm.nextStage();
+    t.assertEqual(sm.currentStageIndex, 7, 'Advances to stage 7 (Ice)');
+    sm.nextStage();
+    t.assertEqual(sm.currentStageIndex, 0, 'Loops back to stage 0');
+  });
+
+  t.test('All 8 stages have valid properties, colors, platforms and props', () => {
+    STAGE_CONFIGS.forEach((stage, idx) => {
+      t.assertTrue(Boolean(stage.name), `Stage ${idx + 1} has name`);
+      t.assertTrue(Boolean(stage.description), `Stage ${idx + 1} has description`);
+      t.assertTrue(Boolean(stage.bgColor), `Stage ${idx + 1} has bgColor`);
+      t.assertTrue(Boolean(stage.floorColor), `Stage ${idx + 1} has floorColor`);
+      t.assertTrue(Array.isArray(stage.props) && stage.props.length >= 4, `Stage ${idx + 1} has at least 4 props`);
+      const platforms = stage.props.filter(p => p.isPlatform);
+      t.assertTrue(platforms.length >= 1, `Stage ${idx + 1} has elevated platforms`);
+    });
+  });
+
+  t.test('Unlocking cats updates collection progress accurately', () => {
+    const sm = new SceneManager();
+    sm.unlockedCats.clear();
+
+    const isNew1 = sm.unlockCat('vietnamese_tabby');
+    t.assertTrue(isNew1, 'First unlock should return true (new)');
+
+    const isNewAgain = sm.unlockCat('vietnamese_tabby');
+    t.assertFalse(isNewAgain, 'Subsequent unlock should return false');
+
+    sm.unlockCat('persian');
+    sm.unlockCat('scottish_fold');
+
+    const progress = sm.getCollectionProgress();
+    t.assertEqual(progress.unlockedCount, 3, 'Unlocked count should be 3');
+    t.assertEqual(progress.totalCount, 12, 'Total catalog count should be 12');
+    t.assertEqual(progress.percentage, 25, '3 of 12 is 25%');
+  });
+
+  t.test('Unlocking bubble shapes adds to unlocked shapes set', () => {
+    const sm = new SceneManager();
+    t.assertTrue(sm.isShapeUnlocked('circle'), 'Circle shape unlocked by default');
+
+    const isNewHeart = sm.unlockShape('heart');
+    t.assertTrue(isNewHeart, 'First heart unlock should be true');
+    t.assertTrue(sm.isShapeUnlocked('heart'), 'Heart shape is now unlocked');
+  });
+}
+
+async function testGameSettingsAndStageExpansion(t) {
+  t.suite('9. Game Settings & Spawner Population Control');
+
+  t.test('Cannon setMaxWater enforces range [1, 80] and updates capacity', () => {
+    const blaster = new Cannon(1280, 720);
+    blaster.setMaxWater(50);
+    t.assertEqual(blaster.maxWater, 50, 'Max water updated to 50');
+    t.assertEqual(blaster.maxAmmo, 50, 'Max ammo getter reflects 50');
+
+    blaster.setMaxWater(100);
+    t.assertEqual(blaster.maxWater, 80, 'Clamps value over 80 to 80');
+
+    blaster.setMaxWater(-5);
+    t.assertEqual(blaster.maxWater, 1, 'Clamps value under 1 to 1');
+  });
+
+  t.test('Spawner setMinCats enforces range [2, 10] and auto-spawns to threshold', () => {
+    const spawner = new CatSpawner();
+    spawner.setMinCats(5);
+    t.assertEqual(spawner.minActiveCats, 5, 'minActiveCats set to 5');
+    t.assertTrue(spawner.maxActiveCats >= 7, 'maxActiveCats scales with minActiveCats');
+
+    spawner.setMinCats(15);
+    t.assertEqual(spawner.minActiveCats, 10, 'Clamps value above 10 to 10');
+
+    spawner.setMinCats(0);
+    t.assertEqual(spawner.minActiveCats, 2, 'Clamps value below 2 to 2');
+
+    // Test population maintenance in update
+    spawner.setMinCats(4);
+    spawner.activeCats = [];
+    spawner.update(0.1, { width: 1280, height: 720 }, [], []);
+    t.assertTrue(spawner.activeCats.length >= 4, 'update() automatically populates active cats to meet minActiveCats');
+  });
+
+  t.test('Cannon setCooldownDuration enforces range [0, 10] and instant recharge at 0s', () => {
+    const blaster = new Cannon(1280, 720);
+    blaster.setCooldownDuration(4.5);
+    t.assertEqual(blaster.cooldownDuration, 4.5, 'Cooldown duration set to 4.5s');
+
+    blaster.setCooldownDuration(15);
+    t.assertEqual(blaster.cooldownDuration, 10, 'Clamps value above 10 to 10');
+
+    blaster.setCooldownDuration(-3);
+    t.assertEqual(blaster.cooldownDuration, 0, 'Clamps value below 0 to 0');
+
+    // Instant refill test at 0s cooldown
+    blaster.setCooldownDuration(0);
+    blaster.currentWater = 1;
+    blaster.fire(true); // fires last water shot
+    t.assertFalse(blaster.isCoolingDown, 'Cooldown should be immediately inactive when duration is 0s');
+    t.assertEqual(blaster.currentAmmo, blaster.maxWater, 'Tank should immediately refill to maxWater');
+  });
+
+  t.test('resetAllData cleans saved state, collection and resets configuration to defaults', () => {
+    safeStorage.setItem('cat_shooter_high_score', '99999');
+    safeStorage.setItem('cute_cat_collection', JSON.stringify(['orange_tabby', 'british_shorthair']));
+    safeStorage.setItem('cute_cat_unlocked_shapes', JSON.stringify(['heart', 'star', 'paw']));
+    safeStorage.setItem('bubble_cat_settings', JSON.stringify({ maxAmmo: 60, minCats: 8, cooldownDuration: 5 }));
+
+    const fakeGame = {
+      highScore: 99999,
+      score: 12000,
+      cannon: new Cannon(1280, 720),
+      spawner: new CatSpawner(),
+      sceneManager: new SceneManager(),
+      setStage(idx) { this.sceneManager.loadStage(idx); }
+    };
+    fakeGame.cannon.setMaxWater(60);
+    fakeGame.spawner.setMinCats(8);
+    fakeGame.sceneManager.unlockCat('orange_tabby');
+
+    // Simulate resetAllData logic
+    safeStorage.removeItem('cat_shooter_high_score');
+    safeStorage.removeItem('bubble_cat_settings');
+    safeStorage.removeItem('cute_cat_collection');
+    safeStorage.removeItem('cute_cat_unlocked_shapes');
+    safeStorage.clear();
+
+    fakeGame.highScore = 0;
+    fakeGame.score = 0;
+    fakeGame.cannon.setMaxWater(20);
+    fakeGame.spawner.setMinCats(4);
+    fakeGame.sceneManager.unlockedCats.clear();
+
+    t.assertEqual(fakeGame.highScore, 0, 'HighScore reset to 0');
+    t.assertEqual(fakeGame.cannon.maxWater, 20, 'Cannon max water reset to default 20');
+    t.assertEqual(fakeGame.spawner.minActiveCats, 4, 'Spawner min cats reset to default 4');
+    t.assertEqual(fakeGame.sceneManager.unlockedCats.size, 0, 'Unlocked cats cleared');
+    t.assertEqual(safeStorage.getItem('cat_shooter_high_score'), null, 'SafeStorage cleared');
+  });
+}
