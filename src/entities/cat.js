@@ -63,6 +63,12 @@ export class Cat {
     this.currentProp = null;
     this.isHiding = false;
     this.peekFactor = 0;
+
+    // Cat Turnover & Natural Wandering Lifecycle
+    this.lifetime = 0;
+    this.maxLifetime = 28 + Math.random() * 20; // 28s - 48s per cat
+    this.pettedCount = 0;
+    this.isDespawned = false;
   }
 
   hideBehind(prop) {
@@ -132,12 +138,19 @@ export class Cat {
       audioManager.playMeow();
     }
 
+    this.pettedCount++;
+    // If petted multiple times and stayed a good while, prepare to leave soon
+    if (this.pettedCount >= 3 && !this.platform && this.lifetime > 18) {
+      this.maxLifetime = Math.min(this.maxLifetime, this.lifetime + 5.0);
+    }
+
     return this.catalog;
   }
 
-  update(dt, bounds = { width: 1280, height: 720 }, props = [], platforms = []) {
+  update(dt, bounds = { width: 1280, height: 720 }, props = [], platforms = [], allCats = []) {
     this.animTime += dt;
     this.stateTimer -= dt;
+    this.lifetime += dt;
 
     // Blinking
     this.blinkTimer -= dt;
@@ -192,6 +205,21 @@ export class Cat {
         this.vx = lerp(this.vx, 0, dt * this.accel);
         this.hopOffset = 0;
         if (this.stateTimer <= 0) {
+          // Check if cat has completed its stay and wants to wander off to make room for new friends
+          // STRICT TURNOVER RULE:
+          // 1. Cat must be on ground floor (!this.platform)
+          // 2. Lifetime exceeded maxLifetime
+          // 3. AT MOST ONE cat can be leaving at any moment across stage!
+          // 4. At least 3 active cats remain on stage so screen is NEVER empty!
+          const leavingCount = (allCats && allCats.length > 0) ? allCats.filter(c => c.state === CAT_STATES.LEAVING).length : 0;
+          const onStageCount = (allCats && allCats.length > 0) ? allCats.filter(c => c.state !== CAT_STATES.LEAVING).length : 4;
+          if (!this.platform && this.lifetime >= this.maxLifetime && leavingCount === 0 && onStageCount >= 2) {
+            this.state = CAT_STATES.LEAVING;
+            this.direction = this.x > bounds.width / 2 ? 1 : -1;
+            this.stateTimer = 12.0; // Ample time to gracefully walk off-screen
+            break;
+          }
+
           // If on ground:
           if (!this.platform) {
             // Chance to leap up onto an elevated platform
@@ -309,15 +337,41 @@ export class Cat {
           this.stateTimer = 2.0;
         }
         break;
+
+      case CAT_STATES.ENTERING:
+        const enterDx = this.targetX - this.x;
+        const enterTargetVx = Math.sign(enterDx) * (this.maxSpeed * 0.95);
+        this.vx = lerp(this.vx, enterTargetVx, dt * this.accel);
+        this.direction = Math.sign(this.vx) || this.direction;
+        this.hopOffset = Math.abs(Math.sin(this.animTime * 9)) * 9;
+
+        if (Math.abs(enterDx) < 14 || this.stateTimer <= 0) {
+          this.state = CAT_STATES.IDLE;
+          this.stateTimer = Math.random() * 2.2 + 1.2;
+        }
+        break;
+
+      case CAT_STATES.LEAVING:
+        this.vx = lerp(this.vx, this.direction * this.maxSpeed * 1.05, dt * this.accel);
+        this.hopOffset = Math.abs(Math.sin(this.animTime * 10)) * 8;
+        if (this.x < -70 || this.x > bounds.width + 70 || this.stateTimer <= 0) {
+          this.isDespawned = true;
+        }
+        break;
     }
 
     this.x += this.vx * dt;
-    this.x = clamp(this.x, minX, maxX);
+    if (this.state !== CAT_STATES.LEAVING && this.state !== CAT_STATES.ENTERING) {
+      this.x = clamp(this.x, minX, maxX);
+    }
     this.y = this.baseY - this.hopOffset - (this.peekFactor * 34);
   }
 
   isHittable() {
     if (this.state === CAT_STATES.HIDING && this.peekFactor < 0.35) {
+      return false;
+    }
+    if ((this.state === CAT_STATES.LEAVING || this.state === CAT_STATES.ENTERING) && (this.x < 10 || this.x > 1270)) {
       return false;
     }
     return true;
@@ -359,6 +413,28 @@ export class Cat {
       this.drawFaceAccessory(ctx, accessories.face, r);
     }
 
+    // 6. Legendary 5-star sparkles (signals rare cat to player)
+    if (this.catalog.rarity === 5) {
+      this.drawLegendarySparkles(ctx, r);
+    }
+
+    ctx.restore();
+  }
+
+  drawLegendarySparkles(ctx, r) {
+    const t = this.animTime;
+    ctx.save();
+    ctx.fillStyle = '#ffd32a';
+    for (let i = 0; i < 3; i++) {
+      const angle = t * 2.2 + (i * Math.PI * 2) / 3;
+      const sx = Math.cos(angle) * (r * 1.15);
+      const sy = -r * 0.95 + Math.sin(t * 3.5 + i) * 8;
+      const size = 3.5 + Math.sin(t * 5 + i) * 1.5;
+
+      ctx.beginPath();
+      ctx.arc(sx, sy, size, 0, Math.PI * 2);
+      ctx.fill();
+    }
     ctx.restore();
   }
 

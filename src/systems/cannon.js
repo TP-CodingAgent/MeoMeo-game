@@ -227,6 +227,10 @@ export class FirstPersonBlaster {
     return this.currentWater / this.maxWater;
   }
 
+  getWaterRatio() {
+    return this.getWaterPercentage();
+  }
+
   setSkin(skinId) {
     this.currentSkin = skinId || 'classic_blaster';
   }

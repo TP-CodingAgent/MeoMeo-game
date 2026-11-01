@@ -111,7 +111,7 @@ export class Game {
 
       // Immediately replenish active cats if below new minimum
       while (this.spawner.activeCats.length < this.spawner.minActiveCats) {
-        if (!this.spawner.spawnCat(this.sceneManager.props, this.sceneManager.platforms)) break;
+        if (!this.spawner.spawnCat(this.sceneManager.props, this.sceneManager.platforms, this.sceneManager.unlockedCats)) break;
       }
     } catch (e) {
       console.warn('Failed to save settings', e);
@@ -157,7 +157,7 @@ export class Game {
     const minToSpawn = Math.max(2, this.spawner.minActiveCats);
     for (let i = 0; i < minToSpawn; i++) {
       const usePlatform = i >= 2 && this.sceneManager.platforms.length > 0;
-      this.spawner.spawnCat(this.sceneManager.props, usePlatform ? this.sceneManager.platforms : []);
+      this.spawner.spawnCat(this.sceneManager.props, usePlatform ? this.sceneManager.platforms : [], this.sceneManager.unlockedCats);
     }
   }
 
@@ -291,7 +291,7 @@ export class Game {
     const minToSpawn = Math.max(2, this.spawner.minActiveCats);
     for (let i = 0; i < minToSpawn; i++) {
       const usePlatform = i >= 2 && this.sceneManager.platforms.length > 0;
-      this.spawner.spawnCat(this.sceneManager.props, usePlatform ? this.sceneManager.platforms : []);
+      this.spawner.spawnCat(this.sceneManager.props, usePlatform ? this.sceneManager.platforms : [], this.sceneManager.unlockedCats);
     }
 
     if (!this.isRunning) {
@@ -317,16 +317,20 @@ export class Game {
   loop(currentTime) {
     if (!this.isRunning) return;
 
-    const dt = Math.min((currentTime - this.lastTime) / 1000, 0.05);
-    this.lastTime = currentTime;
+    try {
+      const dt = Math.min((currentTime - this.lastTime) / 1000, 0.05);
+      this.lastTime = currentTime;
 
-    if (this.state === GAME_STATES.PLAYING) {
-      this.update(dt);
+      if (this.state === GAME_STATES.PLAYING) {
+        this.update(dt);
+      }
+
+      this.render();
+    } catch (err) {
+      console.error('Error in game loop:', err);
+    } finally {
+      requestAnimationFrame((t) => this.loop(t));
     }
-
-    this.render();
-
-    requestAnimationFrame((t) => this.loop(t));
   }
 
   update(dt) {
@@ -370,7 +374,8 @@ export class Game {
       dt,
       { width: this.width, height: this.height },
       this.sceneManager.props,
-      this.sceneManager.platforms
+      this.sceneManager.platforms,
+      this.sceneManager.unlockedCats
     );
 
     this.bubblePool.update(dt, { width: this.width, height: this.height }, this.particlePool);

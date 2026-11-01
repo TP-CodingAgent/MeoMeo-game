@@ -160,6 +160,13 @@ async function testCannonAndWaterTankCooldown(t) {
     t.assertFalse(blaster.isCoolingDown, 'Cooldown should end after 2.0s');
     t.assertEqual(blaster.currentAmmo, 20, 'Ammo should be fully refilled to 20');
   });
+
+  t.test('Blaster getWaterRatio provides safe water fill level', () => {
+    const blaster = new Cannon(1280, 720);
+    t.assertEqual(blaster.getWaterRatio(), 1.0, 'Full tank ratio is 1.0');
+    blaster.fire(true);
+    t.assertEqual(blaster.getWaterRatio(), 19 / 20, 'Ratio matches remaining water percentage');
+  });
 }
 
 async function testSpawnerAndRarityDistribution(t) {
@@ -180,6 +187,69 @@ async function testSpawnerAndRarityDistribution(t) {
       spawner.spawnCat();
     }
     t.assertTrue(spawner.activeCats.length <= 3, 'Active cats must not exceed maxActiveCats');
+  });
+
+  t.test('Natural cat turnover: leaving cat is despawned and replaced by new cat', () => {
+    const spawner = new CatSpawner();
+    spawner.setMinCats(3);
+    spawner.update(0.1);
+    t.assertEqual(spawner.activeCats.length, 3, 'Initial spawn fills to minActiveCats 3');
+
+    // Make first cat finish its lifetime and leave stage
+    const oldCat = spawner.activeCats[0];
+    oldCat.lifetime = 100; // Exceeds maxLifetime
+    oldCat.stateTimer = 0;
+    oldCat.update(0.1);    // Triggers LEAVING state
+    t.assertEqual(oldCat.state, CAT_STATES.LEAVING, 'Old cat transitions to LEAVING state');
+
+    // Move cat outside screen bounds
+    oldCat.x = 1400;
+    oldCat.update(0.1);
+    t.assertTrue(oldCat.isDespawned, 'Cat marked isDespawned when offscreen');
+
+    // Spawner update cleans up despawned cat and spawns fresh newcomer
+    spawner.update(0.1);
+    t.assertEqual(spawner.activeCats.length, 3, 'Spawner replenishes back to minActiveCats 3');
+    t.assertFalse(spawner.activeCats.includes(oldCat), 'Old cat is removed from active array');
+  });
+
+  t.test('Natural newcomer entrance: cat enters walking into view from screen edges', () => {
+    const spawner = new CatSpawner();
+    spawner.setMinCats(3);
+    spawner.update(0.1); // Initial load
+
+    // When an existing cat leaves, the newcomer enters smoothly from the edge
+    const newcomer = spawner.spawnCat([], [], null, true, { width: 1280, height: 720 });
+    t.assertTrue(newcomer !== null, 'Newcomer must spawn successfully');
+    t.assertEqual(newcomer.state, CAT_STATES.ENTERING, 'Newcomer begins in ENTERING state');
+    t.assertTrue(newcomer.x === -45 || newcomer.x === 1280 + 45, 'Newcomer spawns right outside the screen boundary');
+  });
+
+  t.test('Discovery pity system: guarantees missing cats spawn after 10 minutes play session', () => {
+    const spawner = new CatSpawner();
+    // Simulate player with 10 cats unlocked, missing maine_coon and bengal (both rarity 5)
+    const unlockedCatIds = new Set([
+      'vietnamese_tabby', 'british_shorthair', 'scottish_fold', 'persian',
+      'siamese', 'bombay', 'russian_blue', 'calico', 'norwegian_forest', 'sphynx'
+    ]);
+
+    // Fast-forward session play time to 10 minutes (600s)
+    spawner.sessionPlayTime = 605;
+    spawner.spawnsSinceMissing = 2; // Trigger pity
+
+    const pickedBreed = spawner.rollBreed(null, unlockedCatIds);
+    t.assertTrue(
+      pickedBreed.id === 'maine_coon' || pickedBreed.id === 'bengal',
+      `Guaranteed spawn must pick one of the missing cats (got: ${pickedBreed.id})`
+    );
+  });
+
+  t.test('Bad luck protection: guarantees rare cat (tier 4 or 5) after 6 non-rare spawns', () => {
+    const spawner = new CatSpawner();
+    spawner.spawnsSinceRare = 6; // Hit pity threshold
+
+    const picked = spawner.rollBreed();
+    t.assertTrue(picked.rarity >= 4, `Pity must roll Tier 4 or Tier 5 cat (got rarity: ${picked.rarity})`);
   });
 }
 
